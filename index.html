@@ -7,8 +7,15 @@
     <title>Dashboard Pengguna - SIPELIK</title>
     <link rel="icon" type="image/png" href="assets/logo.png">
     <script>
-        // Guard: Jika belum login, alihkan langsung ke login.html
+        // Theme guard
         (function() {
+            const savedTheme = localStorage.getItem('sipelik_theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+
+            // Guard: Jika belum login, alihkan langsung ke login.html
             const userStr = localStorage.getItem('sipelik_user');
             if (!userStr) {
                 window.location.replace('login.html');
@@ -188,6 +195,10 @@
                 <button type="button" class="btn-nav-guide" onclick="document.getElementById('panduanModal').classList.add('active');" title="Panduan Penggunaan">
                     <i class="ph ph-book-open"></i>
                     <span class="guide-text">Panduan</span>
+                </button>
+
+                <button type="button" class="btn-nav-theme" onclick="toggleTheme()" title="Ubah Mode Gelap/Terang" aria-label="Ubah Mode Gelap/Terang">
+                    <i class="ph-bold ph-moon" id="navThemeIcon"></i>
                 </button>
 
                 <div class="user-nav-profile">
@@ -395,7 +406,39 @@
             }
         }
 
+        // Theme management (Dark Mode)
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+            localStorage.setItem('sipelik_theme', theme);
+            updateNavThemeIcon(theme);
+        }
+
+        function updateNavThemeIcon(theme) {
+            const icon = document.getElementById('navThemeIcon');
+            if (icon) {
+                if (theme === 'dark') {
+                    icon.className = 'ph-fill ph-sun';
+                    icon.style.color = '#FBBF24';
+                } else {
+                    icon.className = 'ph-bold ph-moon';
+                    icon.style.color = '';
+                }
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            applyTheme(isDark ? 'light' : 'dark');
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+            updateNavThemeIcon(currentTheme);
+
             const userStr = localStorage.getItem('sipelik_user');
             if (userStr) {
                 try {

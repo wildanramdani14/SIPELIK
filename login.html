@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - SIPELIK UIN Siber Syekh Nurjati Cirebon</title>
     <link rel="icon" type="image/png" href="assets/logo.png">
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('sipelik_theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        })();
+    </script>
     <!-- Import Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="css/style.css">
@@ -128,6 +137,11 @@
 </head>
 <body>
 
+    <!-- Floating Dark Mode Toggle Button -->
+    <button type="button" id="themeToggleBtn" class="theme-toggle-floating" onclick="toggleTheme()" title="Ubah Mode Gelap / Terang" aria-label="Ubah Mode Gelap / Terang">
+        <i class="ph-bold ph-moon" id="themeIcon"></i>
+    </button>
+
     <div id="toastNotify" class="toast-notify"></div>
 
     <div class="auth-wrapper">
@@ -159,11 +173,10 @@
                     </div>
                 </div>
 
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.88rem;">
-                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                <div style="display: flex; align-items: center; margin-bottom: 1.5rem; font-size: 0.88rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; user-select: none;">
                         <input type="checkbox" checked style="accent-color: var(--primary);"> Ingat saya
                     </label>
-                    <a href="javascript:void(0)" onclick="notify('Gunakan username & password akun yang telah terdaftar.', 'error')" style="font-weight: 500; font-size: 0.85rem;">Bantuan?</a>
                 </div>
 
                 <button type="submit" id="btnSubmitLogin" class="btn btn-primary" style="width: 100%; font-size: 1.05rem; padding: 0.75rem;">
@@ -299,6 +312,40 @@
                 btn.innerHTML = '<span>Masuk ke Sistem</span> <i class="ph-bold ph-arrow-right"></i>';
             }
         }
+
+        // Theme management (Dark Mode)
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+            localStorage.setItem('sipelik_theme', theme);
+            updateThemeIcon(theme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = document.getElementById('themeIcon');
+            if (icon) {
+                if (theme === 'dark') {
+                    icon.className = 'ph-fill ph-sun';
+                    icon.style.color = '#FBBF24';
+                } else {
+                    icon.className = 'ph-bold ph-moon';
+                    icon.style.color = '';
+                }
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            applyTheme(isDark ? 'light' : 'dark');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+            updateThemeIcon(currentTheme);
+        });
     </script>
 </body>
 </html>

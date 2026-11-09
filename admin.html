@@ -6,8 +6,14 @@
     <title>Admin Dashboard - SIPELIK UIN Cirebon</title>
     <link rel="icon" type="image/png" href="assets/logo.png">
     <script>
-        // Guard: Admin Session Check
         (function() {
+            const savedTheme = localStorage.getItem('sipelik_theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+
+            // Guard: Admin Session Check
             const userStr = localStorage.getItem('sipelik_user');
             if (!userStr) {
                 window.location.replace('login.html');
