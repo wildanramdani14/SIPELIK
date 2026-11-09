@@ -161,13 +161,17 @@ textarea.form-control {
 .navbar {
     position: sticky;
     top: 0;
-    z-index: 50;
-    padding: 1rem 0;
+    z-index: 100;
+    padding: 0.85rem 0;
     border-bottom: 1px solid var(--border);
-    box-shadow: var(--shadow-sm);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.navbar .container {
+.navbar .container,
+.nav-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -176,12 +180,21 @@ textarea.form-control {
 .navbar-brand {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    font-size: 1.5rem;
-    font-weight: 700;
+    gap: 0.65rem;
+    font-size: 1.45rem;
+    font-weight: 800;
     color: var(--primary-hover);
+    text-decoration: none;
+    letter-spacing: -0.01em;
 }
 
+.brand-logo-img {
+    height: 36px;
+    width: auto;
+    object-fit: contain;
+}
+
+.brand-dot,
 .navbar-brand span {
     color: var(--accent);
 }
@@ -199,6 +212,121 @@ textarea.form-control {
 
 .nav-links a:hover, .nav-links a.active {
     color: var(--primary);
+}
+
+/* Nav Right Action Group */
+.nav-right-group {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.nav-link-item {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    padding: 0.45rem 0.85rem;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.nav-link-item:hover,
+.nav-link-item.active {
+    color: var(--primary);
+}
+
+.btn-nav-guide {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.45rem 0.95rem;
+    background: rgba(11, 92, 58, 0.08);
+    color: var(--primary);
+    border: 1px solid rgba(11, 92, 58, 0.18);
+    border-radius: 9999px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-nav-guide i {
+    font-size: 1.1rem;
+}
+
+.btn-nav-guide:hover {
+    background: var(--primary);
+    color: #ffffff;
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(11, 92, 58, 0.2);
+    transform: translateY(-1px);
+}
+
+.user-nav-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-left: 0.4rem;
+    padding-left: 0.85rem;
+    border-left: 1px solid var(--border);
+}
+
+.user-nav-details {
+    text-align: right;
+}
+
+.user-nav-name {
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: var(--text-main);
+    line-height: 1.25;
+}
+
+.user-nav-role {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.2;
+}
+
+.user-nav-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary) 0%, #08432A 100%);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.88rem;
+    box-shadow: 0 2px 6px rgba(11, 92, 58, 0.2);
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.btn-nav-logout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(239, 68, 68, 0.08);
+    color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1.15rem;
+    flex-shrink: 0;
+}
+
+.btn-nav-logout:hover {
+    background: var(--danger);
+    color: #ffffff;
+    border-color: var(--danger);
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+    transform: translateY(-1px);
 }
 
 /* Cards */
@@ -1627,37 +1755,99 @@ textarea.form-control {
         min-height: 42px;
     }
 
-    /* Navbar on index.html */
+    /* Mobile Navbar */
     .navbar {
-        padding: 0.65rem 0;
+        padding: 0 !important;
+        height: 60px !important;
+        display: flex !important;
+        align-items: center !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1000 !important;
     }
 
-    .navbar .container {
-        padding: 0 0.85rem;
-        flex-wrap: wrap;
-        gap: 0.4rem;
+    .navbar .container,
+    .nav-container {
+        padding: 0 0.85rem !important;
+        flex-wrap: nowrap !important;
+        gap: 0.5rem !important;
+        height: 100% !important;
+        width: 100% !important;
+        align-items: center !important;
     }
 
     .navbar-brand {
-        font-size: 1.2rem;
-        gap: 0.5rem;
+        font-size: 1.18rem !important;
+        gap: 0.45rem !important;
+        flex-shrink: 0 !important;
     }
 
     .brand-logo-img {
-        height: 32px !important;
+        height: 30px !important;
     }
 
-    .nav-links {
-        gap: 0.5rem;
+    .nav-link-home {
+        display: none !important;
     }
 
-    .nav-links a {
-        font-size: 0.88rem;
-        padding: 0.35rem 0.55rem;
+    .nav-right-group {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.45rem !important;
+        flex-wrap: nowrap !important;
+        flex-shrink: 0 !important;
+    }
+
+    .btn-nav-guide {
+        padding: 0.35rem 0.65rem !important;
+        height: 36px !important;
+        font-size: 0.8rem !important;
+        gap: 0.35rem !important;
+        border-radius: 9999px !important;
+    }
+
+    .btn-nav-guide i {
+        font-size: 1rem !important;
+    }
+
+    .user-nav-profile {
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
     }
 
     .user-nav-details {
         display: none !important;
+    }
+
+    .user-nav-avatar {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 0.82rem !important;
+    }
+
+    .btn-nav-logout {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 1.1rem !important;
+        border-radius: 9px !important;
+    }
+
+    @media (max-width: 380px) {
+        .btn-nav-guide {
+            width: 36px !important;
+            padding: 0 !important;
+            justify-content: center !important;
+            border-radius: 9px !important;
+        }
+
+        .btn-nav-guide .guide-text {
+            display: none !important;
+        }
+
+        .navbar-brand {
+            font-size: 1.1rem !important;
+        }
     }
 
     .hero {

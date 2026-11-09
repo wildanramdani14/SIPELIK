@@ -178,33 +178,32 @@
 
     <!-- Navbar -->
     <nav class="navbar glass">
-        <div class="container">
+        <div class="container nav-container">
             <a href="index.html" class="navbar-brand">
                 <img src="assets/logo.png" alt="SIPELIK" class="brand-logo-img">
-                SIPELIK<span>.</span>
+                <span class="brand-name">SIPELIK<span class="brand-dot">.</span></span>
             </a>
 
-            <div class="nav-links">
-                <a href="#" class="active">Beranda</a>
-                <a href="#"
-                    onclick="document.getElementById('panduanModal').classList.add('active'); return false;">Panduan</a>
-                <div
-                    style="display: flex; align-items: center; gap: 0.75rem; margin-left: 1rem; padding-left: 1rem; border-left: 1px solid var(--border);">
-                    <div class="user-nav-details" style="text-align: right;">
-                        <div id="userNavName" style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">
-                            Ahmad Mahasiswa</div>
-                        <div id="userNavRole" style="font-size: 0.8rem; color: var(--text-muted);">Mahasiswa / Pelapor
-                        </div>
+            <div class="nav-right-group">
+                <a href="index.html" class="nav-link-item nav-link-home active">Beranda</a>
+                <button type="button" class="btn-nav-guide" onclick="document.getElementById('panduanModal').classList.add('active');" title="Panduan Penggunaan">
+                    <i class="ph ph-book-open"></i>
+                    <span class="guide-text">Panduan</span>
+                </button>
+
+                <div class="user-nav-profile">
+                    <div class="user-nav-details">
+                        <div id="userNavName" class="user-nav-name">Ahmad Mahasiswa</div>
+                        <div id="userNavRole" class="user-nav-role">Mahasiswa / Pelapor</div>
                     </div>
-                    <div id="userNavAvatar"
-                        style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700;">
+                    <div id="userNavAvatar" class="user-nav-avatar" title="Profil Pengguna">
                         AM
                     </div>
-                    <a href="login.html" onclick="handleUserLogout(event)" title="Keluar"
-                        style="margin-left: 0.5rem; color: var(--danger);">
-                        <i class="ph-bold ph-sign-out" style="font-size: 1.25rem;"></i>
-                    </a>
                 </div>
+
+                <button type="button" class="btn-nav-logout" onclick="handleUserLogout(event)" title="Keluar dari Akun" aria-label="Keluar">
+                    <i class="ph-bold ph-sign-out"></i>
+                </button>
             </div>
         </div>
     </nav>
