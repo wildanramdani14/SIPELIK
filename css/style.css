@@ -25,11 +25,12 @@
 
 /* Dark Theme Variables */
 [data-theme="dark"] {
-    --primary: #10B981;
-    --primary-hover: #34D399;
-    --accent-light: #FBBF24;
-    --accent: #F59E0B;
-    --accent-dark: #D97706;
+    --primary: #237A53;
+    --primary-hover: #2E8D62;
+    --success: #288C5E;
+    --accent-light: #CFA44C;
+    --accent: #B88937;
+    --accent-dark: #8F6623;
     --bg-color: #0F172A;
     --surface: #1E293B;
     --text-main: #F1F5F9;
@@ -74,7 +75,7 @@
 [data-theme="dark"] .form-control:focus {
     background: #0F172A;
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 0 0 3px rgba(35, 122, 83, 0.25);
 }
 
 [data-theme="dark"] .form-control::placeholder {
@@ -83,6 +84,17 @@
 
 [data-theme="dark"] .form-label {
     color: #E2E8F0;
+}
+
+[data-theme="dark"] .btn-primary {
+    background: #237A53;
+    border-color: #237A53;
+    color: #FFFFFF;
+}
+
+[data-theme="dark"] .btn-primary:hover {
+    background: #2E8D62;
+    border-color: #2E8D62;
 }
 
 [data-theme="dark"] .card,
@@ -111,9 +123,20 @@
 }
 
 [data-theme="dark"] .btn-nav-guide {
-    background: rgba(16, 185, 129, 0.12);
-    color: #34D399;
-    border-color: rgba(16, 185, 129, 0.25);
+    background: rgba(35, 122, 83, 0.16);
+    color: #5EBA8F;
+    border-color: rgba(35, 122, 83, 0.3);
+}
+
+[data-theme="dark"] .btn-nav-guide:hover {
+    background: #237A53;
+    color: #FFFFFF;
+    border-color: #237A53;
+}
+
+[data-theme="dark"] .user-nav-avatar {
+    background: linear-gradient(135deg, #256B48 0%, #15422D 100%);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 [data-theme="dark"] .auth-wrapper::before {
@@ -133,9 +156,19 @@
 }
 
 [data-theme="dark"] .quick-chip:hover {
-    background: rgba(16, 185, 129, 0.15);
+    background: rgba(35, 122, 83, 0.18);
     border-color: var(--primary);
-    color: var(--primary-hover);
+    color: #5EBA8F;
+}
+
+[data-theme="dark"] .hero {
+    background: linear-gradient(145deg, #103323 0%, #0B2418 100%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35) !important;
+}
+
+[data-theme="dark"] .btn-hero-action {
+    background: linear-gradient(180deg, #A87D33 0%, #946E2A 100%) !important;
 }
 
 /* Dark Mode Toggle Components */
