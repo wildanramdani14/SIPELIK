@@ -4,9 +4,7 @@
   command = "npm run build"
 
 [functions]
-  node_bundler = "esbuild"
-  external_node_modules = ["sqlite3"]
-  included_files = ["database.db", "js/**"]
+  included_files = ["database.json", "database.db", "js/**"]
 
 [[redirects]]
   from = "/api/*"

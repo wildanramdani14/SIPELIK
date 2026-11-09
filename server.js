@@ -11,101 +11,91 @@ app.use(cors());
 app.use(express.json({ limit: '15mb' }));
 app.use(express.static(__dirname));
 
-// Initialize SQLite Database (Support Local & Netlify Serverless /tmp)
+// Database Driver (Supports SQLite3 locally, with auto-fallback to JSON DB for Netlify / Serverless environments)
 const isNetlify = Boolean(process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME);
+let db;
 
-const candidatePaths = [
-    path.resolve(__dirname, 'database.db'),
-    path.resolve(process.cwd(), 'database.db'),
-    path.resolve(__dirname, '../../database.db'),
-    path.resolve(__dirname, '../database.db')
-];
-const sourceDbPath = candidatePaths.find(p => fs.existsSync(p)) || candidatePaths[0];
-
-let dbPath = sourceDbPath;
 if (isNetlify) {
-    const tmpDbPath = path.join('/tmp', 'database.db');
-    if (!fs.existsSync(tmpDbPath)) {
-        try {
-            if (fs.existsSync(sourceDbPath)) {
-                fs.copyFileSync(sourceDbPath, tmpDbPath);
+    // Pure JavaScript adapter for Netlify Functions (eliminates GLIBC native binary errors)
+    db = require('./js/jsondb.js');
+} else {
+    try {
+        const sqlite3 = require('sqlite3').verbose();
+        const dbPath = path.resolve(__dirname, 'database.db');
+        db = new sqlite3.Database(dbPath, (err) => {
+            if (err) {
+                console.warn('SQLite error, fallback to JSON DB:', err.message);
+                db = require('./js/jsondb.js');
+            } else {
+                initSqliteTables(db);
             }
-        } catch (e) {
-            console.error('Gagal menyalin seed database ke /tmp:', e);
-        }
+        });
+    } catch (e) {
+        db = require('./js/jsondb.js');
     }
-    dbPath = tmpDbPath;
 }
 
-const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error('Error opening database', err);
-    } else {
-        // Create reports table if not exists
-        db.run(`CREATE TABLE IF NOT EXISTS reports (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            location TEXT,
-            lat REAL,
-            lng REAL,
-            date TEXT,
-            status TEXT,
-            desc TEXT,
-            img TEXT,
-            assignedPetugasId INTEGER,
-            assignedPetugasName TEXT,
-            adminNotes TEXT,
-            petugasNotes TEXT,
-            petugasProofImg TEXT,
-            reporterName TEXT DEFAULT 'Ahmad Mahasiswa'
-        )`, () => {
-            // Migrations: ensure columns exist for existing databases
-            const columnsToAdd = [
-                'assignedPetugasId INTEGER',
-                'assignedPetugasName TEXT',
-                'assignedPetugasPhone TEXT',
-                'adminNotes TEXT',
-                'petugasNotes TEXT',
-                'petugasProofImg TEXT',
-                "reporterName TEXT DEFAULT 'Ahmad Mahasiswa'"
-            ];
-            columnsToAdd.forEach(col => {
-                db.run(`ALTER TABLE reports ADD COLUMN ${col}`, () => {});
-            });
+function initSqliteTables(sqliteDb) {
+    sqliteDb.run(`CREATE TABLE IF NOT EXISTS reports (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        location TEXT,
+        lat REAL,
+        lng REAL,
+        date TEXT,
+        status TEXT,
+        desc TEXT,
+        img TEXT,
+        assignedPetugasId INTEGER,
+        assignedPetugasName TEXT,
+        adminNotes TEXT,
+        petugasNotes TEXT,
+        petugasProofImg TEXT,
+        reporterName TEXT DEFAULT 'Ahmad Mahasiswa'
+    )`, () => {
+        const columnsToAdd = [
+            'assignedPetugasId INTEGER',
+            'assignedPetugasName TEXT',
+            'assignedPetugasPhone TEXT',
+            'adminNotes TEXT',
+            'petugasNotes TEXT',
+            'petugasProofImg TEXT',
+            "reporterName TEXT DEFAULT 'Ahmad Mahasiswa'"
+        ];
+        columnsToAdd.forEach(col => {
+            sqliteDb.run(`ALTER TABLE reports ADD COLUMN ${col}`, () => {});
         });
+    });
 
-        // Create users table for Super Admin, Admin, Petugas, and User
-        db.run(`CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            role TEXT NOT NULL,
-            phone TEXT,
-            specialization TEXT,
-            status TEXT DEFAULT 'Aktif',
-            createdAt TEXT
-        )`, () => {
-            // Seed initial users if table is empty
-            db.get("SELECT COUNT(*) as count FROM users", (err, row) => {
-                if (!err && row && row.count === 0) {
-                    const seedUsers = [
-                        ['Dr. H. Ahmad Fauzi, M.T.', 'superadmin', '123', 'superadmin', '081234567890', 'Kepala Pengelola Kampus', 'Aktif', '2026-09-01'],
-                        ['Rina Kusuma, S.Kom', 'admin', '123', 'admin', '081298765432', 'Admin Layanan Pengaduan', 'Aktif', '2026-09-02'],
-                        ['Bayu Pratama, S.T', 'admin2', '123', 'admin', '081255554444', 'Admin Sarana Prasarana', 'Aktif', '2026-09-03'],
-                        ['Pak Joko Santoso', 'petugas1', '123', 'petugas', '081311112222', 'Kebersihan & Sanitasi Gedung', 'Aktif', '2026-09-04'],
-                        ['Kang Asep Saepudin', 'petugas2', '123', 'petugas', '081333334444', 'Fasilitas & Kelistrikan', 'Aktif', '2026-09-05'],
-                        ['Pak Hendra Gunawan', 'petugas3', '123', 'petugas', '081355556666', 'Sarpras & Lingkungan Luar', 'Aktif', '2026-09-06'],
-                        ['Ahmad Mahasiswa', 'mahasiswa', '123', 'user', '085712345678', 'Mahasiswa', 'Aktif', '2026-09-07']
-                    ];
-                    const stmt = db.prepare("INSERT INTO users (name, username, password, role, phone, specialization, status, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-                    seedUsers.forEach(u => stmt.run(u));
-                    stmt.finalize();
-                    console.log('Seeded default users (superadmin, admin, petugas, user)');
-                }
-            });
+    sqliteDb.run(`CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        username TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL,
+        phone TEXT,
+        specialization TEXT,
+        status TEXT DEFAULT 'Aktif',
+        createdAt TEXT
+    )`, () => {
+        sqliteDb.get("SELECT COUNT(*) as count FROM users", (err, row) => {
+            if (!err && row && row.count === 0) {
+                const seedUsers = [
+                    ['Dr. H. Ahmad Fauzi, M.T.', 'superadmin', '123', 'superadmin', '081234567890', 'Kepala Pengelola Kampus', 'Aktif', '2026-09-01'],
+                    ['Rina Kusuma, S.Kom', 'admin', '123', 'admin', '081298765432', 'Admin Layanan Pengaduan', 'Aktif', '2026-09-02'],
+                    ['Bayu Pratama, S.T', 'admin2', '123', 'admin', '081255554444', 'Admin Sarana Prasarana', 'Aktif', '2026-09-03'],
+                    ['Pak Joko Santoso', 'petugas1', '123', 'petugas', '081311112222', 'Kebersihan & Sanitasi Gedung', 'Aktif', '2026-09-04'],
+                    ['Kang Asep Saepudin', 'petugas2', '123', 'petugas', '081333334444', 'Fasilitas & Kelistrikan', 'Aktif', '2026-09-05'],
+                    ['Pak Hendra Gunawan', 'petugas3', '123', 'petugas', '081355556666', 'Sarpras & Lingkungan Luar', 'Aktif', '2026-09-06'],
+                    ['Ahmad Mahasiswa', 'mahasiswa', '123', 'user', '085712345678', 'Mahasiswa', 'Aktif', '2026-09-07']
+                ];
+                const stmt = sqliteDb.prepare("INSERT INTO users (name, username, password, role, phone, specialization, status, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                seedUsers.forEach(u => stmt.run(u));
+                stmt.finalize();
+                console.log('Seeded default users (superadmin, admin, petugas, user)');
+            }
         });
-    }
-});
+    });
+}
 
 const { checkCampusGeofence } = require('./js/geofence.js');
 
