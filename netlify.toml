@@ -1,9 +1,11 @@
 [build]
   publish = "."
   functions = "netlify/functions"
+  command = "npm run build"
 
 [functions]
   node_bundler = "esbuild"
+  external_node_modules = ["sqlite3"]
   included_files = ["database.db", "js/**"]
 
 [[redirects]]
