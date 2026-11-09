@@ -1786,10 +1786,6 @@ textarea.form-control {
         height: 30px !important;
     }
 
-    .nav-link-home {
-        display: none !important;
-    }
-
     .nav-right-group {
         display: flex !important;
         align-items: center !important;
