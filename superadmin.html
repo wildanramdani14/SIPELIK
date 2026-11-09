@@ -367,20 +367,20 @@
                 </div>
 
                 <!-- Role Explanation Info Box -->
-                <div class="card fade-in-up" style="margin-bottom: 2rem; background: linear-gradient(135deg, #FFFFFF, #F8FAFC); border-left: 4px solid var(--accent-light);">
+                <div class="card fade-in-up" style="margin-bottom: 2rem; border-left: 4px solid var(--accent-light);">
                     <h3 style="font-size: 1.15rem; margin-bottom: 0.75rem; color: var(--primary-hover); display: flex; align-items: center; gap: 0.5rem;">
                         <i class="ph-fill ph-tree-structure" style="color: var(--accent-light);"></i> Arsitektur Hierarki Peran SIPELIK
                     </h3>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; font-size: 0.9rem;">
-                        <div style="background: white; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                        <div style="background: var(--surface); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border);">
                             <div style="font-weight: 700; color: #B45309; margin-bottom: 0.35rem;">👑 Super Administrator (Anda)</div>
                             <p style="color: var(--text-muted); font-size: 0.85rem;">Mengelola penuh data akun Admin dan Petugas Lapangan. Mengawasi tata kelola operasional dan performa penyelesaian laporan se-kampus.</p>
                         </div>
-                        <div style="background: white; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                        <div style="background: var(--surface); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border);">
                             <div style="font-weight: 700; color: var(--primary); margin-bottom: 0.35rem;">🛡️ Admin Layanan (Penghubung)</div>
                             <p style="color: var(--text-muted); font-size: 0.85rem;">Menghubungkan <strong>User (Pelapor)</strong> dengan <strong>Petugas Lapangan</strong>. Memverifikasi laporan masuk dan mendisposisikan tugas ke petugas yang sesuai.</p>
                         </div>
-                        <div style="background: white; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                        <div style="background: var(--surface); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border);">
                             <div style="font-weight: 700; color: #7B5024; margin-bottom: 0.35rem;">👷 Petugas Lapangan (Eksekutor)</div>
                             <p style="color: var(--text-muted); font-size: 0.85rem;">Menerima disposisi tugas dari Admin Layanan, mengeksekusi penanganan fisik di kampus, dan mengunggah foto bukti penyelesaian.</p>
                         </div>
@@ -579,11 +579,11 @@
                 </div>
                 <button class="close-btn" onclick="closeDescModal()"><i class="ph ph-x"></i></button>
             </div>
-            <div style="background: #F8FAFC; padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 1.25rem;">
+            <div class="modal-info-box" style="margin-bottom: 1.25rem;">
                 <div style="font-size: 0.82rem; font-weight: 700; color: var(--primary); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.35rem;">
                     <i class="ph-fill ph-map-pin"></i> <span id="descModalLocation"></span>
                 </div>
-                <div id="descModalFullText" style="font-size: 0.95rem; line-height: 1.5; color: #1E293B; word-break: break-word;"></div>
+                <div id="descModalFullText" class="modal-desc-text"></div>
             </div>
             <div class="modal-footer-actions">
                 <button type="button" class="btn btn-primary" onclick="closeDescModal()">Tutup</button>

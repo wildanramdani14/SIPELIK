@@ -430,11 +430,11 @@
                 </div>
                 <button class="close-btn" onclick="closeDescModal()"><i class="ph ph-x"></i></button>
             </div>
-            <div style="background: #F8FAFC; padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 1.25rem;">
+            <div class="modal-info-box" style="margin-bottom: 1.25rem;">
                 <div style="font-size: 0.82rem; font-weight: 700; color: var(--primary); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.35rem;">
                     <i class="ph-fill ph-map-pin"></i> <span id="descModalLocation"></span>
                 </div>
-                <div id="descModalFullText" style="font-size: 0.95rem; line-height: 1.5; color: #1E293B; word-break: break-word;"></div>
+                <div id="descModalFullText" class="modal-desc-text"></div>
             </div>
             <div style="display: flex; justify-content: flex-end;">
                 <button type="button" class="btn btn-primary" onclick="closeDescModal()">Tutup</button>
@@ -458,7 +458,7 @@
             <form id="assignForm" onsubmit="handleAssignSubmit(event)">
                 <input type="hidden" id="assignReportId">
 
-                <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.25rem;">
+                <div class="modal-info-box" style="padding: 1rem; margin-bottom: 1.25rem;">
                     <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">LOKASI & KELUHAN MAHASISWA:</div>
                     <div id="assignReportLocation" style="font-weight: 600; color: var(--text-main); margin-bottom: 0.25rem;"></div>
                     <div id="assignReportDesc" style="font-size: 0.9rem; color: var(--text-muted); font-style: italic;"></div>

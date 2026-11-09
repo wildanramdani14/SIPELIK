@@ -273,9 +273,21 @@
 }
 
 [data-theme="dark"] .badge-wa-coordination {
-    background: rgba(37, 211, 102, 0.14) !important;
-    color: #4ADE80 !important;
-    border: 1px solid rgba(37, 211, 102, 0.25) !important;
+    background: rgba(28, 107, 70, 0.22) !important;
+    color: #68B892 !important;
+    border: 1px solid rgba(28, 107, 70, 0.4) !important;
+}
+
+[data-theme="dark"] .btn-whatsapp {
+    background: linear-gradient(135deg, #1C6B46, #145336) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+    border: 1px solid rgba(74, 222, 128, 0.25) !important;
+    color: #FFFFFF !important;
+}
+
+[data-theme="dark"] .btn-whatsapp:hover {
+    background: linear-gradient(135deg, #237D53, #18603E) !important;
+    box-shadow: 0 4px 12px rgba(28, 107, 70, 0.35) !important;
 }
 
 [data-theme="dark"] .pill-active {
@@ -292,6 +304,29 @@
 
 [data-theme="dark"] .petugas-table-name {
     color: #E2ECE6 !important;
+}
+
+.modal-info-box {
+    background: #F8FAFC;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+}
+
+[data-theme="dark"] .modal-info-box {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.modal-desc-text {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: var(--text-main);
+    word-break: break-word;
+}
+
+[data-theme="dark"] .modal-desc-text {
+    color: #CBD7D0 !important;
 }
 
 [data-theme="dark"] .auth-wrapper::before {
