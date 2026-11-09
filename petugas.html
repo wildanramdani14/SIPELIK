@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petugas Lapangan - SIPELIK UIN Cirebon</title>
+    <link rel="icon" type="image/png" href="assets/logo.png">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .petugas-header {
+            background: linear-gradient(135deg, #1E3A2F 0%, #0B5C3A 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .petugas-profile-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .task-filter-bar {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.75rem;
+        }
+
+        .task-filter-btn {
+            background: transparent;
+            border: none;
+            padding: 0.5rem 1rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .task-filter-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .task-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .task-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .task-grid-layout {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .task-grid-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .admin-instruction-box {
+            background: #FFFBEB;
+            border-left: 4px solid var(--warning);
+            padding: 0.85rem 1.25rem;
+            border-radius: var(--radius-md);
+            margin: 1rem 0;
+            font-size: 0.92rem;
+        }
+
+        .completion-box {
+            background: #ECFDF5;
+            border-left: 4px solid var(--success);
+            padding: 0.85rem 1.25rem;
+            border-radius: var(--radius-md);
+            margin: 1rem 0;
+            font-size: 0.92rem;
+        }
+
+        .toast-petugas {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 10000;
+            padding: 0.85rem 1.25rem;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: var(--shadow-lg);
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        .toast-petugas.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .toast-petugas.success {
+            background: #D1FAE5;
+            color: #065F46;
+            border: 1px solid #6EE7B7;
+        }
+        .toast-petugas.error {
+            background: #FEE2E2;
+            color: #991B1B;
+            border: 1px solid #FCA5A5;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="petugasToast" class="toast-petugas"></div>
+
+    <!-- Header Petugas -->
+    <header class="petugas-header">
+        <div class="container">
+            <div class="petugas-profile-card">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="width: 56px; height: 56px; border-radius: 16px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 2rem; border: 1px solid rgba(255,255,255,0.3);">
+                        <i class="ph-fill ph-hard-hat" style="color: var(--accent-light);"></i>
+                    </div>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <h2 style="color: white; font-size: 1.5rem;" id="officerName">Pak Joko Santoso</h2>
+                            <span class="badge" style="background: rgba(255,255,255,0.2); color: white; font-size: 0.75rem;">Petugas Lapangan</span>
+                        </div>
+                        <p style="color: rgba(255,255,255,0.8); font-size: 0.9rem;" id="officerSpec">Kebersihan & Sanitasi Gedung</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <a href="login.html" onclick="handleLogout(event)" class="btn" style="background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.25);">
+                        <i class="ph-bold ph-sign-out"></i> Keluar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container" style="margin-bottom: 4rem;">
+
+        <!-- Stats Bar -->
+        <section class="stats-grid fade-in-up" style="margin-bottom: 2rem;">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: rgba(11, 92, 58, 0.1); color: var(--primary);">
+                    <i class="ph-fill ph-clipboard-text"></i>
+                </div>
+                <div class="stat-details">
+                    <h3 id="statTotalAssigned">0</h3>
+                    <p>Total Tugas Disposisi</p>
+                </div>
+            </div>
+            <div class="stat-card accent">
+                <div class="stat-icon" style="background: rgba(193, 147, 59, 0.15); color: #7B5024;">
+                    <i class="ph-fill ph-wrench"></i>
+                </div>
+                <div class="stat-details">
+                    <h3 id="statNeedAction">0</h3>
+                    <p>Perlu Ditangani Segera</p>
+                </div>
+            </div>
+            <div class="stat-card" style="border-bottom-color: var(--success);">
+                <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);">
+                    <i class="ph-fill ph-check-circle"></i>
+                </div>
+                <div class="stat-details">
+                    <h3 id="statDone">0</h3>
+                    <p>Selesai Dikerjakan</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Tugas Saya -->
+        <div class="page-header" style="margin-bottom: 1rem;">
+            <div>
+                <h1 style="font-size: 1.5rem; color: var(--primary-hover);">Daftar Tugas Penanganan Lapangan</h1>
+                <p style="color: var(--text-muted); font-size: 0.95rem;">Tugas yang didisposisikan oleh Admin Layanan kepada Anda.</p>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="task-filter-bar">
+            <button class="task-filter-btn active" id="filterAll" onclick="setTaskFilter('all')">
+                Semua Tugas (<span id="countAll">0</span>)
+            </button>
+            <button class="task-filter-btn" id="filterProcess" onclick="setTaskFilter('Diproses')">
+                <i class="ph-bold ph-hourglass-high"></i> Perlu Dikerjakan (<span id="countProcess">0</span>)
+            </button>
+            <button class="task-filter-btn" id="filterDone" onclick="setTaskFilter('Selesai')">
+                <i class="ph-bold ph-check"></i> Selesai (<span id="countDone">0</span>)
+            </button>
+        </div>
+
+        <!-- Task List Container -->
+        <div id="taskListContainer" class="fade-in-up">
+            <!-- Injected by JS -->
+        </div>
+
+    </main>
+
+    <!-- MODAL: Selesaikan Tugas & Unggah Bukti Pengerjaan -->
+    <div class="overlay" id="solveTaskModal">
+        <div class="modal" style="max-width: 600px;">
+            <div class="modal-header">
+                <div>
+                    <h3 style="font-size: 1.4rem; color: var(--primary-hover);">Laporan Penyelesaian Tugas</h3>
+                    <p id="modalTaskSubtitle" style="font-size: 0.85rem; color: var(--text-muted);"></p>
+                </div>
+                <button class="close-btn" onclick="closeModal()"><i class="ph ph-x"></i></button>
+            </div>
+
+            <form id="solveTaskForm" onsubmit="handleSolveTaskSubmit(event)">
+                <input type="hidden" id="solveTaskId">
+
+                <div class="form-group">
+                    <label class="form-label">Foto Bukti Hasil Pengerjaan (Wajib)</label>
+                    <div class="upload-area" id="proofUploadArea" onclick="document.getElementById('proofFileInput').click()">
+                        <i class="ph-bold ph-camera" id="proofUploadIcon"></i>
+                        <p id="proofUploadText" style="font-weight: 500; color: var(--text-main);">Klik untuk ambil/unggah foto bukti yang sudah bersih/diperbaiki</p>
+                        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">Format JPG, PNG (Maks 10MB)</p>
+                    </div>
+                    <input type="file" id="proofFileInput" accept="image/*" style="display: none;" onchange="handleProofImageSelected(event)">
+                    <div id="proofPreviewContainer" style="display: none; margin-top: 0.75rem; text-align: center;">
+                        <img id="proofPreviewImg" src="" style="max-height: 200px; border-radius: var(--radius-md); border: 2px solid var(--success);">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Catatan Hasil Pengerjaan Lapangan</label>
+                    <textarea id="solveNotes" class="form-control" placeholder="Jelaskan tindakan yang telah Anda lakukan (contoh: Area telah disapu dan dipel bersih, tempat sampah sudah dikosongkan ke TPS)..." required style="min-height: 100px;"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-outline" onclick="closeModal()">Batal</button>
+                    <button type="submit" id="btnSubmitSolve" class="btn btn-primary" style="background: var(--success); border-color: var(--success);">
+                        <i class="ph-bold ph-check-circle"></i> Konfirmasi Selesai & Kirim
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.API_BASE || (
+            (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '3000'))
+            ? 'http://localhost:3000/api'
+            : '/api'
+        );
+
+        let currentOfficer = null;
+        let myTasks = [];
+        let currentFilter = 'all';
+        let proofBase64 = null;
+
+        function showToast(msg, type = 'success') {
+            const el = document.getElementById('petugasToast');
+            el.className = `toast-petugas ${type} show`;
+            el.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check-circle' : 'ph-warning-circle'}"></i> <span>${msg}</span>`;
+            setTimeout(() => { el.classList.remove('show'); }, 3000);
+        }
+
+        function closeModal() {
+            document.getElementById('solveTaskModal').classList.remove('active');
+        }
+
+        function setTaskFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.task-filter-btn').forEach(btn => btn.classList.remove('active'));
+            if (filter === 'all') document.getElementById('filterAll').classList.add('active');
+            if (filter === 'Diproses') document.getElementById('filterProcess').classList.add('active');
+            if (filter === 'Selesai') document.getElementById('filterDone').classList.add('active');
+            renderTasks();
+        }
+
+        async function loadOfficerTasks() {
+            try {
+                // Ambil semua laporan
+                const res = await fetch(`${API_BASE}/reports`);
+                const allReports = await res.json();
+
+                // Filter laporan yang ditugaskan ke petugas yang sedang login
+                // Jika tidak login atau testing, fallback tampilkan laporan yang ditugaskan ke petugas ini atau semua yang ditugaskan
+                if (currentOfficer && currentOfficer.id) {
+                    myTasks = allReports.filter(r => r.assignedPetugasId === currentOfficer.id || (!r.assignedPetugasId && r.status === 'Diproses'));
+                } else {
+                    myTasks = allReports.filter(r => r.assignedPetugasId || r.status === 'Diproses');
+                }
+
+                updateStats();
+                renderTasks();
+            } catch (err) {
+                console.error(err);
+                showToast('Gagal memuat tugas dari server', 'error');
+            }
+        }
+
+        function updateStats() {
+            const total = myTasks.length;
+            const process = myTasks.filter(t => t.status === 'Diproses').length;
+            const done = myTasks.filter(t => t.status === 'Selesai').length;
+
+            document.getElementById('statTotalAssigned').textContent = total;
+            document.getElementById('statNeedAction').textContent = process;
+            document.getElementById('statDone').textContent = done;
+
+            document.getElementById('countAll').textContent = total;
+            document.getElementById('countProcess').textContent = process;
+            document.getElementById('countDone').textContent = done;
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('taskListContainer');
+            container.innerHTML = '';
+
+            let filtered = myTasks;
+            if (currentFilter !== 'all') {
+                filtered = myTasks.filter(t => t.status === currentFilter);
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="card" style="text-align: center; padding: 3rem 1.5rem; color: var(--text-muted);">
+                        <i class="ph-bold ph-check-circle" style="font-size: 3rem; color: var(--success); margin-bottom: 0.75rem;"></i>
+                        <h3>Tidak Ada Tugas</h3>
+                        <p style="margin-top: 0.25rem;">Tidak ada tugas yang cocok dengan filter saat ini.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(task => {
+                let badgeClass = 'badge-process';
+                if (task.status === 'Selesai') badgeClass = 'badge-success';
+                if (task.status === 'Menunggu') badgeClass = 'badge-pending';
+
+                const isDone = task.status === 'Selesai';
+
+                container.innerHTML += `
+                    <div class="task-card">
+                        <div class="task-grid-layout">
+                            <div>
+                                <div style="font-weight: 600; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.35rem;">Foto Masalah Pelapor:</div>
+                                <img src="${task.img}" style="width: 100%; height: 160px; object-fit: cover; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; justify-content: space-between;">
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                                        <div>
+                                            <span style="font-size: 0.82rem; font-weight: 700; color: var(--primary);">#PGD-${task.id}</span>
+                                            <h3 style="font-size: 1.25rem; color: var(--text-main); margin-top: 0.1rem;">
+                                                <i class="ph-fill ph-map-pin" style="color: var(--primary);"></i> ${task.location}
+                                            </h3>
+                                            ${(task.lat && task.lng) ? `
+                                                <div style="margin: 0.35rem 0;">
+                                                    <a href="https://www.google.com/maps/dir/?api=1&destination=${task.lat},${task.lng}" target="_blank" rel="noopener noreferrer" class="btn" style="padding: 0.25rem 0.75rem; font-size: 0.78rem; background: rgba(37, 99, 235, 0.1); color: #1D4ED8; border: 1px solid rgba(37, 99, 235, 0.3); display: inline-flex; align-items: center; gap: 0.35rem; text-decoration: none; border-radius: var(--radius-full); font-weight: 600;">
+                                                        <i class="ph-bold ph-navigation-arrow"></i> Petunjuk Rute GPS (Google Maps)
+                                                    </a>
+                                                </div>
+                                            ` : ''}
+                                            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">
+                                                <i class="ph ph-calendar"></i> ${task.date || '-'} • Pelapor: <strong>${task.reporterName || 'Mahasiswa'}</strong>
+                                            </div>
+                                        </div>
+                                        <span class="badge ${badgeClass}">${task.status}</span>
+                                    </div>
+
+                                    <p style="color: var(--text-main); font-size: 0.95rem; margin-top: 0.5rem; line-height: 1.5;">
+                                        ${task.desc}
+                                    </p>
+
+                                    <!-- Instruksi dari Admin Layanan -->
+                                    <div class="admin-instruction-box">
+                                        <div style="font-weight: 700; color: #B45309; display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem;">
+                                            <i class="ph-fill ph-chat-circle-dots"></i> Instruksi Khusus dari Admin Layanan:
+                                        </div>
+                                        <div style="color: #78350F; font-style: italic;">
+                                            "${task.adminNotes || 'Segera lakukan penanganan dan laporkan bukti penyelesaian.'}"
+                                        </div>
+                                    </div>
+
+                                    ${isDone ? `
+                                        <div class="completion-box">
+                                            <div style="font-weight: 700; color: #065F46; display: flex; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem;">
+                                                <i class="ph-fill ph-check-circle"></i> Hasil Penanganan Lapangan Anda:
+                                            </div>
+                                            <div style="color: #047857; margin-bottom: 0.5rem;">
+                                                ${task.petugasNotes || 'Telah diselesaikan dengan baik.'}
+                                            </div>
+                                            ${task.petugasProofImg ? `
+                                                <div style="margin-top: 0.5rem;">
+                                                    <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted);">Foto Bukti Penyelesaian:</span><br>
+                                                    <img src="${task.petugasProofImg}" style="height: 100px; border-radius: var(--radius-md); border: 2px solid var(--success); margin-top: 0.25rem;">
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                    ` : ''}
+                                </div>
+
+                                <div style="display: flex; justify-content: flex-end; margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                                    ${!isDone ? `
+                                        <button class="btn btn-primary" onclick="openSolveModal(${task.id})" style="background: linear-gradient(135deg, var(--accent-light), var(--accent));">
+                                            <i class="ph-bold ph-camera"></i> Selesaikan Tugas & Kirim Bukti
+                                        </button>
+                                    ` : `
+                                        <div style="color: var(--success); font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 0.35rem;">
+                                            <i class="ph-bold ph-check-circle"></i> Tugas Telah Tuntas Diselesaikan
+                                        </div>
+                                    `}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function openSolveModal(taskId) {
+            const task = myTasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            document.getElementById('solveTaskId').value = task.id;
+            document.getElementById('modalTaskSubtitle').textContent = `Tugas: ${task.location} (#PGD-${task.id})`;
+            document.getElementById('solveNotes').value = '';
+            proofBase64 = null;
+            document.getElementById('proofPreviewContainer').style.display = 'none';
+            document.getElementById('proofUploadText').textContent = 'Klik untuk ambil/unggah foto bukti yang sudah bersih/diperbaiki';
+            
+            document.getElementById('solveTaskModal').classList.add('active');
+        }
+
+        function handleProofImageSelected(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                proofBase64 = event.target.result;
+                document.getElementById('proofPreviewImg').src = proofBase64;
+                document.getElementById('proofPreviewContainer').style.display = 'block';
+                document.getElementById('proofUploadText').textContent = 'Foto bukti berhasil dipilih (Klik untuk ganti)';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function handleSolveTaskSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('solveTaskId').value;
+            const notes = document.getElementById('solveNotes').value.trim();
+
+            if (!proofBase64) {
+                showToast('Harap lampirkan foto bukti pengerjaan!', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btnSubmitSolve');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Mengirim Laporan...';
+
+            try {
+                const res = await fetch(`${API_BASE}/reports/${id}/progress`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        petugasNotes: notes,
+                        petugasProofImg: proofBase64,
+                        status: 'Selesai'
+                    })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    showToast(data.error || 'Gagal menyimpan penyelesaian tugas', 'error');
+                    return;
+                }
+
+                showToast('Laporan pengerjaan berhasil dikirim! Status telah menjadi Selesai.', 'success');
+                closeModal();
+                loadOfficerTasks();
+            } catch (err) {
+                console.error(err);
+                showToast('Terjadi kesalahan jaringan!', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph-bold ph-check-circle"></i> Konfirmasi Selesai & Kirim';
+            }
+        }
+
+        function handleLogout(e) {
+            e.preventDefault();
+            if (confirm('Keluar dari akun petugas?')) {
+                localStorage.removeItem('sipelik_user');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            alert('Pemberitahuan: Akun login web Petugas Lapangan telah dinonaktifkan. Seluruh penugasan kerja lapangan dikoordinasikan langsung oleh Admin Layanan melalui WhatsApp.');
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>

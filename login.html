@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SIPELIK UIN Siber Syekh Nurjati Cirebon</title>
+    <link rel="icon" type="image/png" href="assets/logo.png">
+    <!-- Import Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            max-width: 440px;
+        }
+
+        .form-icon-wrapper {
+            position: relative;
+        }
+
+        .form-icon-wrapper i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1.25rem;
+        }
+
+        .form-icon-wrapper input {
+            padding-left: 3rem;
+        }
+
+        .quick-login-section {
+            margin-top: 1.75rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .quick-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.65rem;
+            font-size: 0.78rem;
+            font-weight: 500;
+            border-radius: var(--radius-full);
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: var(--transition);
+            margin: 0.2rem;
+        }
+
+        .quick-chip:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(11, 92, 58, 0.05);
+            transform: translateY(-1px);
+        }
+
+        .quick-chip.chip-gold:hover {
+            border-color: var(--accent-light);
+            color: var(--accent-dark);
+            background: rgba(193, 147, 59, 0.1);
+        }
+
+        .toast-notify {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 9999;
+            padding: 0.85rem 1.25rem;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: var(--shadow-lg);
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .toast-notify.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast-notify.error {
+            background: #FEE2E2;
+            color: #991B1B;
+            border: 1px solid #FCA5A5;
+        }
+
+        .toast-notify.success {
+            background: #D1FAE5;
+            color: #065F46;
+            border: 1px solid #6EE7B7;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="toastNotify" class="toast-notify"></div>
+
+    <div class="auth-wrapper">
+        <div class="auth-card fade-in-up">
+            <div class="auth-header">
+                <img src="assets/logo.png" alt="Logo SIPELIK UIN SSC" class="auth-logo-img">
+                <h1 style="font-size: 1.8rem; margin-bottom: 0.25rem;">SIPELIK</h1>
+                <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.4;">
+                    Sistem Pengaduan Lingkungan Kampus<br>
+                    <strong>UIN Siber Syekh Nurjati Cirebon</strong>
+                </p>
+            </div>
+
+            <!-- Form Login (Hanya Username & Password) -->
+            <form id="loginForm" onsubmit="handleLoginSubmit(event)">
+                <div class="form-group">
+                    <label class="form-label">Username / ID</label>
+                    <div class="form-icon-wrapper">
+                        <i class="ph ph-user"></i>
+                        <input type="text" id="inputUsername" class="form-control" placeholder="Masukkan username Anda" required autocomplete="username">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div class="form-icon-wrapper">
+                        <i class="ph ph-lock"></i>
+                        <input type="password" id="inputPassword" class="form-control" placeholder="Masukkan password" required autocomplete="current-password">
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.88rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" checked style="accent-color: var(--primary);"> Ingat saya
+                    </label>
+                    <a href="javascript:void(0)" onclick="notify('Gunakan username & password akun yang telah terdaftar.', 'error')" style="font-weight: 500; font-size: 0.85rem;">Bantuan?</a>
+                </div>
+
+                <button type="submit" id="btnSubmitLogin" class="btn btn-primary" style="width: 100%; font-size: 1.05rem; padding: 0.75rem;">
+                    <span>Masuk ke Sistem</span> <i class="ph-bold ph-arrow-right"></i>
+                </button>
+            </form>
+
+            <!-- Quick Demo Login (Mengisi otomatis Username & Password) -->
+            <div class="quick-login-section">
+                <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.35rem;">
+                    <i class="ph-bold ph-lightning" style="color: var(--accent-light);"></i> Akun Uji Coba Cepat:
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 0.3rem;">
+                    <button type="button" class="quick-chip chip-gold" onclick="quickFill('superadmin', '123')">
+                        👑 Super Admin
+                    </button>
+                    <button type="button" class="quick-chip" onclick="quickFill('admin', '123')">
+                        🛡️ Admin Layanan
+                    </button>
+                    <button type="button" class="quick-chip" onclick="quickFill('mahasiswa', '123')">
+                        🎓 Mahasiswa (Pelapor)
+                    </button>
+                </div>
+                <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.5rem; display: flex; align-items: center; gap: 0.3rem;">
+                    <i class="ph-bold ph-whatsapp-logo" style="color: #25D366;"></i>
+                    <span>Petugas Lapangan dikoordinasikan langsung via WhatsApp oleh Admin.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.API_BASE || (
+            (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '3000'))
+            ? 'http://localhost:3000/api'
+            : '/api'
+        );
+
+        function notify(msg, type = 'success') {
+            const el = document.getElementById('toastNotify');
+            el.className = `toast-notify ${type} show`;
+            el.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check-circle' : 'ph-warning-circle'}"></i> <span>${msg}</span>`;
+            setTimeout(() => { el.classList.remove('show'); }, 3000);
+        }
+
+        // Fungsi uji coba cepat: isi username & password langsung submit
+        function quickFill(user, pass) {
+            document.getElementById('inputUsername').value = user;
+            document.getElementById('inputPassword').value = pass;
+            notify(`Mengisi kredensial ${user}...`, 'success');
+            setTimeout(() => {
+                document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+            }, 300);
+        }
+
+        async function handleLoginSubmit(e) {
+            e.preventDefault();
+            const username = document.getElementById('inputUsername').value.trim();
+            const password = document.getElementById('inputPassword').value;
+            const btn = document.getElementById('btnSubmitLogin');
+
+            if (!username || !password) {
+                notify('Harap masukkan username dan password!', 'error');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Memverifikasi...';
+
+            try {
+                // Login hanya mengirim username dan password
+                const res = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    notify(data.error || 'Username atau password salah!', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>Masuk ke Sistem</span> <i class="ph-bold ph-arrow-right"></i>';
+                    return;
+                }
+
+                // Simpan session pengguna
+                localStorage.setItem('sipelik_user', JSON.stringify(data.user));
+
+                // Tentukan halaman tujuan otomatis berdasarkan peran dari database
+                const role = data.user.role;
+                let roleLabel = 'Mahasiswa';
+                let redirectUrl = 'index.html';
+
+                if (role === 'superadmin') {
+                    roleLabel = 'Super Administrator';
+                    redirectUrl = 'superadmin.html';
+                } else if (role === 'admin') {
+                    roleLabel = 'Admin Layanan';
+                    redirectUrl = 'admin.html';
+                } else if (role === 'petugas') {
+                    notify('Petugas lapangan tidak menggunakan akun login web. Koordinasi tugas dikoordinasikan langsung via WhatsApp oleh Admin.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>Masuk ke Sistem</span> <i class="ph-bold ph-arrow-right"></i>';
+                    return;
+                }
+
+                notify(`Login berhasil sebagai ${roleLabel} (${data.user.name})! Mengalihkan...`, 'success');
+
+                setTimeout(() => {
+                    window.location.href = redirectUrl;
+                }, 600);
+
+            } catch (err) {
+                console.error(err);
+                notify('Gagal terhubung ke server! Pastikan server aktif di port 3000.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<span>Masuk ke Sistem</span> <i class="ph-bold ph-arrow-right"></i>';
+            }
+        }
+    </script>
+</body>
+</html>

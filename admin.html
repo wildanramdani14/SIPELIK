@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - SIPELIK UIN Cirebon</title>
+    <link rel="icon" type="image/png" href="assets/logo.png">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .action-btns {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1rem;
+        }
+
+        .btn-view {
+            background: rgba(11, 92, 58, 0.1);
+            color: var(--primary);
+        }
+
+        .btn-view:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-assign {
+            background: rgba(193, 147, 59, 0.15);
+            color: #7B5024;
+        }
+
+        .btn-assign:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .filter-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            background: var(--surface);
+            padding: 1rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .admin-tab {
+            display: none;
+        }
+        
+        .admin-tab.active {
+            display: block;
+            animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .workflow-bridge-card {
+            background: linear-gradient(135deg, #F0FDF4 0%, #FEFCE8 100%);
+            border: 1px solid #BBF7D0;
+            border-radius: var(--radius-lg);
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .petugas-chip-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.2rem 0.6rem;
+            background: rgba(193, 147, 59, 0.12);
+            color: #7B5024;
+            border-radius: var(--radius-full);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <!-- Mobile Sidebar Backdrop -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebarCollapse()"></div>
+
+        <!-- Floating Button to Expand Sidebar when Minimized on Desktop -->
+        <button type="button" id="btnSidebarExpandFloating" class="btn-sidebar-expand-floating" onclick="toggleSidebarCollapse()" title="Tampilkan Sidebar" aria-label="Tampilkan Sidebar">
+            <i class="ph-bold ph-sidebar-simple"></i>
+            <span>Menu Sidebar</span>
+        </button>
+
+        <!-- Sidebar (Sticky & Fixed on Mobile) -->
+        <aside class="sidebar" id="appSidebar">
+            <div class="sidebar-header">
+                <a href="admin.html" class="sidebar-brand">
+                    <img src="assets/logo.png" alt="SIPELIK" class="brand-logo-img">
+                    <span>SIPELIK<span>.</span></span>
+                </a>
+                <div class="sidebar-header-actions">
+                    <button type="button" onclick="toggleSidebarCollapse()" class="btn-sidebar-minimize" title="Minimalkan Sidebar (Sembunyikan ke samping)" aria-label="Minimalkan Sidebar">
+                        <i class="ph-bold ph-sidebar-simple"></i>
+                    </button>
+                    <button type="button" class="sidebar-close-btn" onclick="toggleSidebarCollapse()" aria-label="Tutup Menu">
+                        <i class="ph-bold ph-x"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.08); padding: 0.75rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.65rem;">
+                    <div style="width: 38px; height: 38px; border-radius: 50%; background: white; color: var(--primary-hover); display: flex; align-items: center; justify-content: center; font-weight: 700;">
+                        AD
+                    </div>
+                    <div>
+                        <div id="adminProfileName" style="font-weight: 600; font-size: 0.88rem; color: white;">Rina Kusuma, S.Kom</div>
+                        <div style="font-size: 0.75rem; color: rgba(255,255,255,0.75);">Admin Layanan Kampus</div>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="active" id="nav-dashboard" onclick="switchTab('dashboard'); return false;">
+                    <i class="ph ph-squares-four"></i> Dashboard
+                </a>
+                <a href="#" id="nav-pengaduan" onclick="switchTab('pengaduan'); return false;">
+                    <i class="ph ph-list-dashes"></i> Pengaduan & Disposisi
+                </a>
+                <a href="#" id="nav-petugas" onclick="switchTab('petugas'); return false;">
+                    <i class="ph ph-hard-hat"></i> Petugas Lapangan
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button onclick="handleAdminLogout()" class="btn btn-logout-sidebar">
+                    <i class="ph-bold ph-sign-out"></i> Keluar
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Formal Print Header (Only visible when printing) -->
+            <div class="print-only print-header">
+                <div class="print-header-content">
+                    <img src="assets/logo.png" class="print-logo" alt="Logo UIN SSC">
+                    <div class="print-header-text">
+                        <h2>KEMENTERIAN AGAMA REPUBLIK INDONESIA</h2>
+                        <h3>UNIVERSITAS ISLAM NEGERI SIBER SYEKH NURJATI CIREBON</h3>
+                        <h4>SIPELIK - SISTEM PENGADUAN & LAYANAN INFORMASI KAMPUS</h4>
+                        <p>Jl. Perjuangan, Sunyaragi, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131 • www.uinssc.ac.id</p>
+                    </div>
+                </div>
+                <div class="print-meta-bar">
+                    <div id="printDocTitle" class="print-doc-title">LAPORAN DATA SISTEM</div>
+                    <div id="printDocMeta" class="print-doc-meta">Dicetak pada: -</div>
+                </div>
+            </div>
+
+            <!-- Mobile Topbar Header -->
+            <header class="mobile-topbar">
+                <button type="button" class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Buka Menu">
+                    <i class="ph-bold ph-list"></i>
+                </button>
+                <div class="mobile-brand">
+                    <img src="assets/logo.png" alt="SIPELIK" class="brand-logo-img-mobile">
+                    SIPELIK<span>.</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.65rem;">
+                    <div style="width: 34px; height: 34px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem;">
+                        AD
+                    </div>
+                    <button type="button" onclick="handleAdminLogout()" class="btn-mobile-logout" title="Keluar dari Sistem" aria-label="Keluar">
+                        <i class="ph-bold ph-sign-out"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- TAB: DASHBOARD -->
+            <div id="tab-dashboard" class="admin-tab active">
+                <div class="page-header fade-in-up">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                            <span class="badge" style="background: rgba(11, 92, 58, 0.1); color: var(--primary); font-size: 0.75rem;">ADMIN LAYANAN</span>
+                        </div>
+                        <h1 class="page-title">Dashboard Administrator</h1>
+                        <p style="color: var(--text-muted);">Penghubung antara Laporan Mahasiswa/User dan Tim Petugas Lapangan.</p>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-outline btn-print" onclick="printPageReport('dashboard')">
+                            <i class="ph-bold ph-printer"></i> Cetak Laporan
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Workflow Bridge Banner -->
+                <div class="workflow-bridge-card fade-in-up" style="animation-delay: 0.05s;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="width: 44px; height: 44px; border-radius: 12px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                            <i class="ph-fill ph-git-fork"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; color: var(--primary-hover); font-size: 1rem;">Peran Anda: Penghubung User & Petugas</div>
+                            <p style="font-size: 0.85rem; color: #374151; margin-top: 0.15rem;">
+                                Verifikasi laporan yang masuk dari mahasiswa, lalu teruskan tugas ke Petugas Lapangan via <strong>WhatsApp <i class="ph-fill ph-whatsapp-logo" style="color: #25D366;"></i></strong>.
+                            </p>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="switchTab('pengaduan')" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+                        Buka Antrean Pengaduan <i class="ph-bold ph-arrow-right"></i>
+                    </button>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-grid fade-in-up" style="animation-delay: 0.1s;">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="ph-fill ph-files"></i></div>
+                        <div class="stat-details">
+                            <h3 id="statTotal">0</h3>
+                            <p>Total Pengaduan</p>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="border-bottom-color: var(--warning);">
+                        <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--warning);"><i class="ph-fill ph-warning-circle"></i></div>
+                        <div class="stat-details">
+                            <h3 id="statMenunggu">0</h3>
+                            <p>Menunggu Disposisi</p>
+                        </div>
+                    </div>
+                    <div class="stat-card accent">
+                        <div class="stat-icon"><i class="ph-fill ph-wrench"></i></div>
+                        <div class="stat-details">
+                            <h3 id="statProses">0</h3>
+                            <p>Sedang Ditangani Petugas</p>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="border-bottom-color: var(--success);">
+                        <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);"><i class="ph-fill ph-check-circle"></i></div>
+                        <div class="stat-details">
+                            <h3 id="statSelesai">0</h3>
+                            <p>Selesai Ditangani</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics and Map -->
+                <div class="analytics-map-grid fade-in-up" style="animation-delay: 0.15s;">
+                    <div class="card" style="display: flex; flex-direction: column;">
+                        <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Statistik Pengaduan</h3>
+                        <div style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 250px;">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3 style="font-size: 1.1rem; margin: 0;">Peta Titik Kejadian & Wilayah Geofence</h3>
+                            <span style="font-size: 0.8rem; color: var(--primary); font-weight: 500;"><i class="ph-fill ph-shield-check"></i> Geofence Kampus Aktif</span>
+                        </div>
+                        <div id="adminOverviewMap" style="height: 300px; width: 100%; border-radius: var(--radius-md); z-index: 1;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: PENGADUAN & DISPOSISI -->
+            <div id="tab-pengaduan" class="admin-tab">
+                <div class="page-header fade-in-up">
+                    <div>
+                        <h1 class="page-title">Data Pengaduan & Penugasan Petugas</h1>
+                        <p style="color: var(--text-muted);">Kelola laporan, verifikasi lokasi, dan teruskan tugas ke petugas via WhatsApp.</p>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-outline btn-print" onclick="printPageReport('pengaduan')">
+                            <i class="ph-bold ph-printer"></i> Cetak Laporan
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="fade-in-up" style="animation-delay: 0.1s;">
+                    <div class="filter-bar">
+                        <div style="font-weight: 600; font-size: 1.05rem;">
+                            <i class="ph-bold ph-list-dashes" style="color: var(--primary);"></i> Daftar Pengaduan Masuk
+                        </div>
+                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                            <input type="text" id="adminSearchInput" class="form-control" placeholder="Cari lokasi atau nama..." style="width: 220px; padding: 0.4rem 0.8rem;" oninput="filterAdminReports()">
+                            <select id="adminStatusFilter" class="form-control" style="width: 160px; padding: 0.4rem 0.8rem;" onchange="filterAdminReports()">
+                                <option value="all">Semua Status</option>
+                                <option value="Menunggu">Menunggu Disposisi</option>
+                                <option value="Diproses">Sedang Diproses</option>
+                                <option value="Selesai">Selesai</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Pelapor</th>
+                                    <th>Lokasi Kejadian</th>
+                                    <th>Tanggal</th>
+                                    <th>Petugas Ditugaskan</th>
+                                    <th>Status</th>
+                                    <th style="text-align: right;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminTableBody">
+                                <!-- Injected by app.js -->
+                            </tbody>
+                        </table>
+                        <div id="displayCount" style="padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; color: var(--text-muted);">
+                            Menampilkan 0 data
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: PETUGAS LAPANGAN -->
+            <div id="tab-petugas" class="admin-tab">
+                <div class="page-header fade-in-up">
+                    <div>
+                        <h1 class="page-title"><i class="ph-bold ph-whatsapp-logo" style="color: #25D366;"></i> Direktori Kontak Petugas Lapangan (WhatsApp)</h1>
+                        <p style="color: var(--text-muted);">Hubungi dan koordinasikan penanganan pengaduan kampus secara langsung melalui WhatsApp.</p>
+                    </div>
+                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                        <button type="button" class="btn btn-outline btn-print" onclick="printPageReport('petugas')">
+                            <i class="ph-bold ph-printer"></i> Cetak Laporan
+                        </button>
+                        <span class="badge" style="background: rgba(37, 211, 102, 0.15); color: #0c6b33; padding: 0.45rem 0.85rem; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.4rem;">
+                            <i class="ph-fill ph-chat-circle-dots"></i> Koordinasi Instan via WhatsApp
+                        </span>
+                    </div>
+                </div>
+
+                <div class="filter-header-bar fade-in-up" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; background: var(--surface); padding: 0.85rem 1.25rem; border-radius: var(--radius-lg); border: 1px solid var(--border); flex-wrap: wrap; gap: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="ph-bold ph-users-three" style="color: var(--primary); font-size: 1.25rem;"></i>
+                        <span style="font-weight: 600;">Personel Lapangan Siap Dihubungi</span>
+                    </div>
+                    <div>
+                        <input type="text" id="adminPetugasSearchInput" class="form-control" placeholder="Cari nama atau spesialisasi..." style="width: 260px; padding: 0.4rem 0.8rem;" oninput="renderPetugasDirectory()">
+                    </div>
+                </div>
+
+                <div class="table-wrapper fade-in-up">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nama Petugas</th>
+                                <th>Nomor WhatsApp</th>
+                                <th>Spesialisasi Lapangan</th>
+                                <th>Status Personel</th>
+                                <th style="text-align: right;">Aksi WhatsApp</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminPetugasDirectoryBody">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Formal Print Footer (Signature, Only visible when printing) -->
+            <div class="print-only print-footer">
+                <div class="print-signature-box">
+                    <p id="printSignCityDate">Cirebon, -</p>
+                    <p id="printSignRole">Administrator Layanan Kampus,</p>
+                    <div class="print-signature-space"></div>
+                    <p id="printSignName" class="print-signature-name"><strong>Rina Kusuma, S.Kom</strong></p>
+                    <p class="print-signature-id">SIPELIK UIN Siber Syekh Nurjati Cirebon</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL: View Deskripsi Pengaduan -->
+    <div class="overlay" id="descViewModal">
+        <div class="modal" style="max-width: 480px;">
+            <div class="modal-header">
+                <div>
+                    <h3 style="font-size: 1.25rem; color: var(--primary-hover); display: flex; align-items: center; gap: 0.4rem;">
+                        <i class="ph-bold ph-chat-text" style="color: var(--primary);"></i> Deskripsi / Keluhan
+                    </h3>
+                    <p id="descModalSubtitle" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.15rem;"></p>
+                </div>
+                <button class="close-btn" onclick="closeDescModal()"><i class="ph ph-x"></i></button>
+            </div>
+            <div style="background: #F8FAFC; padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 1.25rem;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: var(--primary); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.35rem;">
+                    <i class="ph-fill ph-map-pin"></i> <span id="descModalLocation"></span>
+                </div>
+                <div id="descModalFullText" style="font-size: 0.95rem; line-height: 1.5; color: #1E293B; word-break: break-word;"></div>
+            </div>
+            <div style="display: flex; justify-content: flex-end;">
+                <button type="button" class="btn btn-primary" onclick="closeDescModal()">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Teruskan Laporan ke Petugas Lapangan via WhatsApp -->
+    <div class="overlay" id="assignModal">
+        <div class="modal" style="max-width: 650px;">
+            <div class="modal-header">
+                <div>
+                    <h3 style="font-size: 1.35rem; color: var(--primary-hover); display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="ph-fill ph-whatsapp-logo" style="color: #25D366; font-size: 1.6rem;"></i> Teruskan Laporan ke WhatsApp Petugas
+                    </h3>
+                    <p id="assignModalSubtitle" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;"></p>
+                </div>
+                <button class="close-btn" onclick="document.getElementById('assignModal').classList.remove('active')"><i class="ph ph-x"></i></button>
+            </div>
+
+            <form id="assignForm" onsubmit="handleAssignSubmit(event)">
+                <input type="hidden" id="assignReportId">
+
+                <div style="background: #F8FAFC; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.25rem;">
+                    <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.25rem;">LOKASI & KELUHAN MAHASISWA:</div>
+                    <div id="assignReportLocation" style="font-weight: 600; color: var(--text-main); margin-bottom: 0.25rem;"></div>
+                    <div id="assignReportDesc" style="font-size: 0.9rem; color: var(--text-muted); font-style: italic;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="font-weight: 600;">
+                        Pilih Petugas Lapangan Penanggung Jawab
+                    </label>
+                    <select id="assignPetugasSelect" class="form-control" required style="font-weight: 500;" onchange="updateAssignWhatsAppPreview()">
+                        <option value="">-- Pilih Petugas yang Bertugas --</option>
+                        <!-- Injected via fetch /api/users?role=petugas -->
+                    </select>
+                    <small style="color: var(--text-muted); display: block; margin-top: 0.35rem;">
+                        <i class="ph-bold ph-lightbulb" style="color: var(--accent-light);"></i> Pilih petugas sesuai bidang spesialisasi masalah (Kebersihan / Fasilitas / Listrik).
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" style="font-weight: 600;">
+                        Catatan & Instruksi Khusus dari Admin Layanan
+                    </label>
+                    <textarea id="assignAdminNotes" class="form-control" placeholder="Contoh: Segera bersihkan sampah di toilet lantai 2, bawa sabun refill dan alat pel. Harap foto bukti setelah tuntas." style="min-height: 80px;" required oninput="updateAssignWhatsAppPreview()"></textarea>
+                </div>
+
+                <!-- Live WhatsApp Preview Box -->
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 600; display: flex; align-items: center; gap: 0.35rem; color: #128C7E;">
+                            <i class="ph-bold ph-chat-circle-dots"></i> Draf Pesan WhatsApp yang Akan Dikirim:
+                        </span>
+                        <button type="button" class="btn btn-outline" onclick="copyAssignWhatsAppText()" style="padding: 0.2rem 0.55rem; font-size: 0.78rem;">
+                            <i class="ph-bold ph-copy"></i> Salin Teks
+                        </button>
+                    </label>
+                    <div class="wa-preview-card">
+                        <div class="wa-chat-bubble" id="assignWaPreviewText">
+                            Pilih petugas dan masukkan instruksi di atas untuk melihat draf pesan WhatsApp...
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem; flex-wrap: wrap;">
+                    <button type="button" class="btn btn-outline" onclick="document.getElementById('assignModal').classList.remove('active')">Batal</button>
+                    <button type="button" class="btn btn-outline" onclick="handleAssignOnlySubmit(event)" id="btnAssignOnly" title="Hanya simpan status tugas di sistem tanpa membuka WhatsApp">
+                        <i class="ph-bold ph-floppy-disk"></i> Simpan Saja
+                    </button>
+                    <button type="submit" id="btnSubmitAssign" class="btn btn-whatsapp" style="padding: 0.65rem 1.25rem;">
+                        <i class="ph-fill ph-whatsapp-logo" style="font-size: 1.25rem;"></i> Teruskan ke WhatsApp
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Detail & Verifikasi Pengaduan -->
+    <div class="overlay" id="detailModal">
+        <div class="modal" style="max-width: 720px;">
+            <div class="modal-header">
+                <div>
+                    <h3 style="font-size: 1.45rem; color: var(--primary-hover);">Detail & Verifikasi Pengaduan</h3>
+                    <p id="detailModalSubtitle" style="font-size: 0.85rem; color: var(--text-muted);"></p>
+                </div>
+                <button class="close-btn" onclick="document.getElementById('detailModal').classList.remove('active')"><i class="ph ph-x"></i></button>
+            </div>
+            
+            <div id="adminDetailContent">
+                <!-- Injected via app.js -->
+            </div>
+
+            <div style="border-top: 1px solid var(--border); padding-top: 1.25rem;">
+                <h4 style="margin-bottom: 0.75rem; font-size: 1.05rem;">Perbarui Status & Hasil Pengerjaan</h4>
+                <div style="display: grid; grid-template-columns: 200px 1fr; gap: 1rem; margin-bottom: 1rem; align-items: start;" class="modal-grid-2col">
+                    <div>
+                        <label class="form-label" style="font-size: 0.85rem;">Status Laporan</label>
+                        <select id="adminStatusSelect" class="form-control" style="font-weight: 500;">
+                            <option value="Menunggu">Menunggu Disposisi</option>
+                            <option value="Diproses">Diproses Petugas</option>
+                            <option value="Selesai">Selesai Ditangani</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" style="font-size: 0.85rem;">Catatan Pengerjaan Petugas (Hasil Lapangan)</label>
+                        <input type="text" id="adminPetugasNotesInput" class="form-control" placeholder="Contoh: Area telah dibersihkan dan sampah sudah diangkut ke TPS.">
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-outline" onclick="document.getElementById('detailModal').classList.remove('active')">Tutup</button>
+                    <button type="button" id="adminStatusSave" class="btn btn-primary"><i class="ph-bold ph-floppy-disk"></i> Simpan Pembaruan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/geofence.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        let availablePetugas = [];
+
+        window.toggleSidebarCollapse = function() {
+            const isMobile = window.innerWidth <= 992;
+            const sidebar = document.getElementById('appSidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            const container = document.querySelector('.dashboard-container') || document.body;
+            const floatingBtn = document.getElementById('btnSidebarExpandFloating');
+
+            if (isMobile) {
+                if (sidebar) sidebar.classList.toggle('open');
+                if (backdrop) backdrop.classList.toggle('active');
+            } else {
+                const isCollapsed = container.classList.toggle('sidebar-collapsed');
+                if (sidebar) sidebar.classList.toggle('collapsed', isCollapsed);
+                if (floatingBtn) floatingBtn.classList.toggle('show', isCollapsed);
+                if (window.adminMap) setTimeout(() => window.adminMap.invalidateSize(), 320);
+                if (window.statusChart) setTimeout(() => window.statusChart.resize(), 320);
+            }
+        };
+
+        window.toggleSidebar = function() {
+            window.toggleSidebarCollapse();
+        };
+
+        window.printPageReport = function(tabName) {
+            if (tabName) {
+                switchTab(tabName);
+            }
+            const activeTab = document.querySelector('.admin-tab.active');
+            const currentTabId = activeTab ? activeTab.id : 'tab-dashboard';
+
+            let title = 'LAPORAN SISTEM PENGADUAN SIPELIK';
+            if (currentTabId === 'tab-dashboard') {
+                title = 'LAPORAN RINGKASAN & STATISTIK PENGADUAN KAMPUS';
+            } else if (currentTabId === 'tab-pengaduan') {
+                title = 'LAPORAN DATA PENGADUAN & DISPOSISI PETUGAS LAPANGAN';
+            } else if (currentTabId === 'tab-petugas') {
+                title = 'LAPORAN DIREKTORI KONTAK PETUGAS LAPANGAN (WHATSAPP)';
+            }
+
+            const titleEl = document.getElementById('printDocTitle');
+            if (titleEl) titleEl.textContent = title;
+
+            const metaEl = document.getElementById('printDocMeta');
+            const now = new Date();
+            const dateFormatted = now.toLocaleDateString('id-ID', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            const timeFormatted = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            if (metaEl) metaEl.textContent = `Dicetak pada: ${dateFormatted} • Pukul ${timeFormatted} WIB`;
+
+            const signCityDate = document.getElementById('printSignCityDate');
+            if (signCityDate) signCityDate.textContent = `Cirebon, ${dateFormatted}`;
+
+            const adminName = document.getElementById('adminProfileName')?.textContent || 'Rina Kusuma, S.Kom';
+            const signName = document.getElementById('printSignName');
+            if (signName) signName.innerHTML = `<strong>${adminName}</strong>`;
+
+            // Trigger browser print
+            setTimeout(() => {
+                window.print();
+            }, 100);
+        };
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.sidebar-nav a').forEach(nav => nav.classList.remove('active'));
+
+            const tab = document.getElementById('tab-' + tabName);
+            const nav = document.getElementById('nav-' + tabName);
+            if(tab) tab.classList.add('active');
+            if(nav) nav.classList.add('active');
+
+            // Auto close sidebar on mobile after clicking tab
+            if (window.innerWidth <= 992) {
+                const sidebar = document.getElementById('appSidebar');
+                const backdrop = document.getElementById('sidebarBackdrop');
+                if (sidebar) sidebar.classList.remove('open');
+                if (backdrop) backdrop.classList.remove('active');
+            }
+            
+            if (tabName === 'dashboard' && window.adminMap) {
+                setTimeout(() => { window.adminMap.invalidateSize(); }, 100);
+            }
+
+            if (tabName === 'petugas') {
+                renderPetugasDirectory();
+            }
+        }
+
+        async function loadPetugasForAdmin() {
+            try {
+                const apiBase = window.API_BASE || '/api';
+                const res = await fetch(`${apiBase}/users?role=petugas`);
+                availablePetugas = await res.json();
+                renderPetugasDropdown();
+                renderPetugasDirectory();
+            } catch (err) {
+                console.error("Gagal load petugas:", err);
+            }
+        }
+
+        function renderPetugasDropdown() {
+            const select = document.getElementById('assignPetugasSelect');
+            if (!select) return;
+            select.innerHTML = '<option value="">-- Pilih Petugas yang Bertugas --</option>';
+            availablePetugas.filter(p => p.status === 'Aktif').forEach(p => {
+                select.innerHTML += `
+                    <option value="${p.id}" data-name="${p.name}" data-phone="${p.phone || ''}" data-spec="${p.specialization || ''}">
+                        👷 ${p.name} • WA: ${p.phone || '-'} • (${p.specialization || 'Penanganan Lapangan'})
+                    </option>
+                `;
+            });
+        }
+
+        function renderPetugasDirectory() {
+            const tbody = document.getElementById('adminPetugasDirectoryBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const search = (document.getElementById('adminPetugasSearchInput')?.value || '').toLowerCase();
+            const filtered = availablePetugas.filter(p => 
+                p.name.toLowerCase().includes(search) || 
+                (p.specialization || '').toLowerCase().includes(search) ||
+                (p.phone || '').includes(search)
+            );
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Tidak ada petugas yang cocok dengan pencarian.</td></tr>';
+                return;
+            }
+
+            filtered.forEach(p => {
+                const isAktif = p.status === 'Aktif';
+                const cleanPhone = (p.phone || '').replace(/[^0-9]/g, '');
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="nowrap"><strong>#PTG-${p.id}</strong></td>
+                        <td>
+                            <div style="font-weight: 600; color: #1E293B; font-size: 0.95rem;">${p.name}</div>
+                        </td>
+                        <td class="nowrap">
+                            <div class="table-cell-list">
+                                <a href="https://wa.me/${cleanPhone}" target="_blank" class="table-list-item wa-link" title="Buka Chat WhatsApp">
+                                    <i class="ph-bold ph-whatsapp-logo"></i>
+                                    <span>${p.phone || '-'}</span>
+                                </a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="table-cell-list">
+                                <div class="table-list-item">
+                                    <i class="ph-bold ph-wrench" style="color: var(--primary);"></i>
+                                    <strong>${p.specialization || 'Penanganan Lapangan'}</strong>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="nowrap">
+                            <span class="pill-status ${isAktif ? 'pill-active' : 'pill-inactive'}">
+                                <i class="ph-fill ${isAktif ? 'ph-check-circle' : 'ph-x-circle'}"></i> ${p.status}
+                            </span>
+                        </td>
+                        <td class="nowrap" style="text-align: right;">
+                            <button type="button" class="btn btn-whatsapp" style="padding: 0.35rem 0.85rem; font-size: 0.82rem;" onclick="openDirectWhatsAppChat('${p.phone}', '${p.name}')">
+                                <i class="ph-fill ph-whatsapp-logo"></i> Chat WhatsApp
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        window.openDirectWhatsAppChat = function(phone, name) {
+            const greeting = `Halo Bapak/Kang *${name}*, ini Admin Layanan Pengaduan SIPELIK UIN Siber Cirebon. Ingin koordinasi terkait penanganan sarana kampus.`;
+            window.sendWhatsAppToPetugas(phone, greeting);
+        };
+
+        // Live WhatsApp Preview Generator in Assign Modal
+        let activeAssignReport = null;
+
+        window.updateAssignWhatsAppPreview = function() {
+            const previewEl = document.getElementById('assignWaPreviewText');
+            if (!previewEl || !activeAssignReport) return;
+
+            const select = document.getElementById('assignPetugasSelect');
+            const selectedOpt = select.options[select.selectedIndex];
+            const petugasName = selectedOpt && selectedOpt.value ? selectedOpt.getAttribute('data-name') : 'Petugas Lapangan';
+            const adminNotes = document.getElementById('assignAdminNotes').value.trim() || 'Segera tindak lanjuti laporan ini ke lokasi kejadian.';
+
+            const message = window.formatWhatsAppTaskMessage(activeAssignReport, { name: petugasName }, adminNotes);
+            previewEl.textContent = message;
+        };
+
+        window.copyAssignWhatsAppText = function() {
+            const previewEl = document.getElementById('assignWaPreviewText');
+            if (!previewEl) return;
+            const text = previewEl.textContent;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    window.showToast('Draf pesan penugasan WhatsApp berhasil disalin!', 'success');
+                }).catch(() => {
+                    window.showToast('Gagal menyalin teks.', 'error');
+                });
+            }
+        };
+
+        // Open Disposisi Modal
+        window.openAssignModal = function(reportId) {
+            const rep = window.currentReports ? window.currentReports.find(r => r.id === reportId) : null;
+            if (!rep) return;
+
+            activeAssignReport = rep;
+            document.getElementById('assignReportId').value = rep.id;
+            document.getElementById('assignModalSubtitle').textContent = `Laporan #PGD-${rep.id} • Tanggal: ${rep.date || '-'}`;
+            document.getElementById('assignReportLocation').innerHTML = `<i class="ph-fill ph-map-pin" style="color: var(--primary);"></i> ${rep.location}`;
+            document.getElementById('assignReportDesc').textContent = rep.desc;
+
+            // Pre-select if already assigned
+            const select = document.getElementById('assignPetugasSelect');
+            if (rep.assignedPetugasId) {
+                select.value = rep.assignedPetugasId;
+            } else {
+                select.value = '';
+            }
+
+            document.getElementById('assignAdminNotes').value = rep.adminNotes || 'Segera cek lokasi kejadian dan bawa peralatan yang dibutuhkan. Mohon kirimkan foto bukti setelah selesai.';
+            
+            updateAssignWhatsAppPreview();
+            document.getElementById('assignModal').classList.add('active');
+        };
+
+        async function handleAssignSubmit(e) {
+            e.preventDefault();
+            await processAssign(true);
+        }
+
+        async function handleAssignOnlySubmit(e) {
+            e.preventDefault();
+            await processAssign(false);
+        }
+
+        async function processAssign(openWhatsApp = true) {
+            const reportId = document.getElementById('assignReportId').value;
+            const select = document.getElementById('assignPetugasSelect');
+            const petugasId = select.value;
+            const selectedOption = select.options[select.selectedIndex];
+            const petugasName = selectedOption ? selectedOption.getAttribute('data-name') : '';
+            const petugasPhone = selectedOption ? selectedOption.getAttribute('data-phone') : '';
+            const adminNotes = document.getElementById('assignAdminNotes').value.trim();
+
+            if (!petugasId) {
+                window.showToast('Silakan pilih petugas lapangan terlebih dahulu!', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btnSubmitAssign');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Memproses...';
+
+            try {
+                const apiBase = window.API_BASE || '/api';
+                const res = await fetch(`${apiBase}/reports/${reportId}/assign`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        assignedPetugasId: parseInt(petugasId),
+                        assignedPetugasName: petugasName,
+                        assignedPetugasPhone: petugasPhone,
+                        adminNotes: adminNotes
+                    })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    window.showToast(data.error || 'Gagal meneruskan tugas ke WhatsApp', 'error');
+                    return;
+                }
+
+                document.getElementById('assignModal').classList.remove('active');
+                
+                if (openWhatsApp) {
+                    window.showToast(`Pesan berhasil diteruskan ke WhatsApp ${petugasName}! Status otomatis menjadi Diproses.`, 'success');
+                    const message = window.formatWhatsAppTaskMessage(activeAssignReport, { name: petugasName, phone: petugasPhone }, adminNotes);
+                    window.sendWhatsAppToPetugas(petugasPhone, message);
+                } else {
+                    window.showToast(`Laporan berhasil ditugaskan ke ${petugasName}! Status: Diproses.`, 'success');
+                }
+
+                if (typeof fetchReports === 'function') fetchReports();
+            } catch (err) {
+                console.error(err);
+                window.showToast('Gagal terhubung ke server', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="ph-fill ph-whatsapp-logo" style="font-size: 1.25rem;"></i> Teruskan ke WhatsApp';
+            }
+        }
+
+        function handleAdminLogout() {
+            if (confirm('Keluar dari sesi Administrator?')) {
+                localStorage.removeItem('sipelik_user');
+                window.location.href = 'login.html';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const userStr = localStorage.getItem('sipelik_user');
+            if (userStr) {
+                try {
+                    const u = JSON.parse(userStr);
+                    if (u.name) document.getElementById('adminProfileName').textContent = u.name;
+                } catch(e) {}
+            }
+
+            loadPetugasForAdmin();
+
+            if(document.getElementById('adminOverviewMap')) {
+                window.adminMap = L.map('adminOverviewMap').setView([-6.7355, 108.5325], 16);
+                L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+                    maxZoom: 20,
+                    subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+                    attribution: '&copy; Google Maps'
+                }).addTo(window.adminMap);
+
+                if(window.CAMPUS_GEOFENCE_ZONES) {
+                    window.CAMPUS_GEOFENCE_ZONES.forEach(zone => {
+                        const poly = L.polygon(zone.coordinates, {
+                            color: '#0B5C3A',
+                            fillColor: '#10B981',
+                            fillOpacity: 0.2,
+                            weight: 2
+                        }).addTo(window.adminMap);
+                        poly.bindTooltip(`<b>${zone.name}</b>`, { sticky: true });
+                    });
+                }
+
+                window.adminMarkersLayer = L.layerGroup().addTo(window.adminMap);
+            }
+            
+            if(document.getElementById('statusChart')) {
+                const ctx = document.getElementById('statusChart').getContext('2d');
+                window.adminChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Total', 'Menunggu Disposisi', 'Diproses Petugas', 'Selesai'],
+                        datasets: [{
+                            label: 'Jumlah Pengaduan',
+                            data: [0,0,0,0],
+                            backgroundColor: ['#0B5C3A', '#F59E0B', '#C1933B', '#10B981'],
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { 
+                                beginAtZero: true, 
+                                ticks: { stepSize: 1 } 
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

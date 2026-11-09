@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Dashboard - SIPELIK UIN Cirebon</title>
+    <link rel="icon" type="image/png" href="assets/logo.png">
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        :root {
+            --super-gold: #C1933B;
+            --super-dark: #1E293B;
+        }
+
+        .super-badge {
+            background: linear-gradient(135deg, #FFF7ED, #FFEDD5);
+            color: #C2410C;
+            border: 1px solid #FDBA74;
+            padding: 0.2rem 0.6rem;
+            border-radius: var(--radius-full);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .admin-tab {
+            display: none;
+        }
+
+        .admin-tab.active {
+            display: block;
+            animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1rem;
+        }
+
+        .btn-edit-user {
+            background: rgba(193, 147, 59, 0.12);
+            color: var(--accent);
+        }
+        .btn-edit-user:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-delete-user {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+        .btn-delete-user:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-status-toggle {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+        .btn-status-toggle:hover {
+            background: var(--success);
+            color: white;
+        }
+        .btn-status-toggle.inactive {
+            background: rgba(107, 114, 128, 0.1);
+            color: var(--text-muted);
+        }
+
+        .filter-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            background: var(--surface);
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .pill-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.2rem 0.65rem;
+            border-radius: var(--radius-full);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .pill-active {
+            background: rgba(16, 185, 129, 0.12);
+            color: #065F46;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .pill-inactive {
+            background: rgba(239, 68, 68, 0.12);
+            color: #991B1B;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .role-tag {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+        }
+        .role-tag.admin {
+            background: rgba(11, 92, 58, 0.1);
+            color: var(--primary);
+        }
+        .role-tag.petugas {
+            background: rgba(193, 147, 59, 0.15);
+            color: #7B5024;
+        }
+
+        .toast-super {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 10000;
+            padding: 0.85rem 1.25rem;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: var(--shadow-lg);
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        .toast-super.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .toast-super.success {
+            background: #D1FAE5;
+            color: #065F46;
+            border: 1px solid #6EE7B7;
+        }
+        .toast-super.error {
+            background: #FEE2E2;
+            color: #991B1B;
+            border: 1px solid #FCA5A5;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="superToast" class="toast-super"></div>
+
+    <div class="dashboard-container">
+        <!-- Mobile Sidebar Backdrop -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebarCollapse()"></div>
+
+        <!-- Floating Button to Expand Sidebar when Minimized on Desktop -->
+        <button type="button" id="btnSidebarExpandFloating" class="btn-sidebar-expand-floating" onclick="toggleSidebarCollapse()" title="Tampilkan Sidebar" aria-label="Tampilkan Sidebar" style="background: #063A25;">
+            <i class="ph-bold ph-sidebar-simple"></i>
+            <span>Menu Super Admin</span>
+        </button>
+
+        <!-- Sidebar (Sticky & Fixed on Mobile) -->
+        <aside class="sidebar" id="appSidebar" style="background: #063A25;">
+            <div class="sidebar-header">
+                <a href="superadmin.html" class="sidebar-brand">
+                    <img src="assets/logo.png" alt="SIPELIK" class="brand-logo-img">
+                    <span>SIPELIK<span>.</span></span>
+                    <span class="super-badge" style="margin-left: 0.35rem; font-size: 0.62rem; padding: 2px 6px;">SUPER</span>
+                </a>
+                <div class="sidebar-header-actions">
+                    <button type="button" onclick="toggleSidebarCollapse()" class="btn-sidebar-minimize" title="Minimalkan Sidebar (Sembunyikan ke samping)" aria-label="Minimalkan Sidebar">
+                        <i class="ph-bold ph-sidebar-simple"></i>
+                    </button>
+                    <button type="button" class="sidebar-close-btn" onclick="toggleSidebarCollapse()" aria-label="Tutup Menu">
+                        <i class="ph-bold ph-x"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.06); padding: 0.75rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.65rem;">
+                    <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #F59E0B, #B45309); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
+                        👑
+                    </div>
+                    <div>
+                        <div id="superAdminName" style="font-weight: 600; font-size: 0.88rem; color: #F8FAFC;">Dr. H. Ahmad Fauzi</div>
+                        <div style="font-size: 0.75rem; color: #CBD5E1;">Kepala Pengelola Kampus</div>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="active" id="nav-dashboard" onclick="switchSuperTab('dashboard'); return false;">
+                    <i class="ph-bold ph-squares-four"></i> Ringkasan Sistem
+                </a>
+                <a href="#" id="nav-kelola-admin" onclick="switchSuperTab('kelola-admin'); return false;">
+                    <i class="ph-bold ph-shield-check"></i> Kelola Admin
+                </a>
+                <a href="#" id="nav-kelola-petugas" onclick="switchSuperTab('kelola-petugas'); return false;">
+                    <i class="ph-bold ph-hard-hat"></i> Kelola Petugas
+                </a>
+                <a href="#" id="nav-monitoring" onclick="switchSuperTab('monitoring'); return false;">
+                    <i class="ph-bold ph-broadcast"></i> Monitoring Pengaduan
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button onclick="handleLogout()" class="btn btn-logout-sidebar">
+                    <i class="ph-bold ph-sign-out"></i> Keluar Sistem
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Formal Print Header (Only visible when printing) -->
+            <div class="print-only print-header">
+                <div class="print-header-content">
+                    <img src="assets/logo.png" class="print-logo" alt="Logo UIN SSC">
+                    <div class="print-header-text">
+                        <h2>KEMENTERIAN AGAMA REPUBLIK INDONESIA</h2>
+                        <h3>UNIVERSITAS ISLAM NEGERI SIBER SYEKH NURJATI CIREBON</h3>
+                        <h4>SIPELIK - SISTEM PENGADUAN & LAYANAN INFORMASI KAMPUS</h4>
+                        <p>Jl. Perjuangan, Sunyaragi, Kec. Kesambi, Kota Cirebon, Jawa Barat 45131 • www.uinssc.ac.id</p>
+                    </div>
+                </div>
+                <div class="print-meta-bar">
+                    <div id="printDocTitle" class="print-doc-title">LAPORAN DATA SISTEM</div>
+                    <div id="printDocMeta" class="print-doc-meta">Dicetak pada: -</div>
+                </div>
+            </div>
+
+            <!-- Mobile Topbar Header -->
+            <header class="mobile-topbar">
+                <button type="button" class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Buka Menu">
+                    <i class="ph-bold ph-list"></i>
+                </button>
+                <div class="mobile-brand">
+                    <img src="assets/logo.png" alt="SIPELIK" class="brand-logo-img-mobile">
+                    <span>SIPELIK<span style="color: var(--accent);">.</span></span>
+                    <span class="super-badge" style="font-size: 0.62rem; padding: 2px 6px; margin-left: 0.25rem;">SUPER</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.65rem;">
+                    <div style="width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #F59E0B, #B45309); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.95rem;">
+                        👑
+                    </div>
+                    <button type="button" onclick="handleLogout()" class="btn-mobile-logout" title="Keluar dari Sistem" aria-label="Keluar">
+                        <i class="ph-bold ph-sign-out"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- TAB 1: DASHBOARD RINGKASAN -->
+            <div id="tab-dashboard" class="admin-tab active">
+                <div class="page-header fade-in-up">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                            <span class="super-badge"><i class="ph-fill ph-crown"></i> SUPER ADMINISTRATOR</span>
+                        </div>
+                        <h1 class="page-title">Pusat Kendali Sistem Pengaduan</h1>
+                        <p style="color: var(--text-muted);">Manajemen hierarki akun Admin Layanan dan Petugas Lapangan UIN Siber Cirebon.</p>
+                    </div>
+                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                        <button type="button" class="btn btn-outline btn-print" onclick="printSuperPageReport('dashboard')">
+                            <i class="ph-bold ph-printer"></i> Cetak Laporan
+                        </button>
+                        <button class="btn btn-primary" onclick="openAddUserModal('admin')">
+                            <i class="ph-bold ph-plus-circle"></i> Tambah Admin Baru
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid fade-in-up" style="animation-delay: 0.05s;">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: rgba(11, 92, 58, 0.1); color: var(--primary);">
+                            <i class="ph-fill ph-shield-check"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="statTotalAdmin">0</h3>
+                            <p>Admin Layanan Aktif</p>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="border-bottom-color: var(--accent-light);">
+                        <div class="stat-icon" style="background: rgba(193, 147, 59, 0.12); color: var(--accent);">
+                            <i class="ph-fill ph-hard-hat"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="statTotalPetugas">0</h3>
+                            <p>Petugas Lapangan Aktif</p>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="border-bottom-color: var(--warning);">
+                        <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--warning);">
+                            <i class="ph-fill ph-files"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="statTotalLaporan">0</h3>
+                            <p>Total Pengaduan Masuk</p>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="border-bottom-color: var(--success);">
+                        <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);">
+                            <i class="ph-fill ph-check-circle"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3 id="statTotalSelesai">0</h3>
+                            <p>Tuntas Ditangani</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Role Explanation Info Box -->
+                <div class="card fade-in-up" style="margin-bottom: 2rem; background: linear-gradient(135deg, #FFFFFF, #F8FAFC); border-left: 4px solid var(--accent-light);">
+                    <h3 style="font-size: 1.15rem; margin-bottom: 0.75rem; color: var(--primary-hover); display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="ph-fill ph-tree-structure" style="color: var(--accent-light);"></i> Arsitektur Hierarki Peran SIPELIK
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; font-size: 0.9rem;">
+                        <div style="background: white; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <div style="font-weight: 700; color: #B45309; margin-bottom: 0.35rem;">👑 Super Administrator (Anda)</div>
+                            <p style="color: var(--text-muted); font-size: 0.85rem;">Mengelola penuh data akun Admin dan Petugas Lapangan. Mengawasi tata kelola operasional dan performa penyelesaian laporan se-kampus.</p>
+                        </div>
+                        <div style="background: white; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <div style="font-weight: 700; color: var(--primary); margin-bottom: 0.35rem;">🛡️ Admin Layanan (Penghubung)</div>
+                            <p style="color: var(--text-muted); font-size: 0.85rem;">Menghubungkan <strong>User (Pelapor)</strong> dengan <strong>Petugas Lapangan</strong>. Memverifikasi laporan masuk dan mendisposisikan tugas ke petugas yang sesuai.</p>
+                        </div>
+                        <div style="background: white; padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                            <div style="font-weight: 700; color: #7B5024; margin-bottom: 0.35rem;">👷 Petugas Lapangan (Eksekutor)</div>
+                            <p style="color: var(--text-muted); font-size: 0.85rem;">Menerima disposisi tugas dari Admin Layanan, mengeksekusi penanganan fisik di kampus, dan mengunggah foto bukti penyelesaian.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity / Overview Chart -->
+                <div class="super-overview-grid" style="margin-bottom: 2rem;">
+                    <div class="card">
+                        <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Performa Penanganan Pengaduan Kampus</h3>
+                        <div style="height: 260px;">
+                            <canvas id="superOverviewChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 style="font-size: 1.1rem; margin-bottom: 1rem;">Aksi Cepat Super Admin</h3>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <button class="btn btn-outline" style="justify-content: flex-start;" onclick="openAddUserModal('admin')">
+                                <i class="ph-bold ph-user-plus" style="color: var(--primary);"></i> Tambah Admin Layanan Baru
+                            </button>
+                            <button class="btn btn-outline" style="justify-content: flex-start;" onclick="openAddUserModal('petugas')">
+                                <i class="ph-bold ph-hard-hat" style="color: var(--accent-light);"></i> Tambah Petugas Lapangan Baru
+                            </button>
+                            <button class="btn btn-outline" style="justify-content: flex-start;" onclick="switchSuperTab('monitoring')">
+                                <i class="ph-bold ph-magnifying-glass"></i> Pantau Seluruh Laporan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: KELOLA ADMIN -->
+            <div id="tab-kelola-admin" class="admin-tab">
+                <div class="page-header fade-in-up">
+                    <div>
+                        <h1 class="page-title">Manajemen Akun Admin Layanan</h1>
+                        <p style="color: var(--text-muted);">Admin bertugas sebagai penghubung antara laporan Mahasiswa/User dan Petugas Lapangan.</p>
+                    </div>
+                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                        <button type="button" class="btn btn-outline btn-print" onclick="printSuperPageReport('kelola-admin')">
+                            <i class="ph-bold ph-printer"></i> Cetak Laporan
+                        </button>
+                        <button class="btn btn-primary" onclick="openAddUserModal('admin')">
+                            <i class="ph-bold ph-plus-circle"></i> Tambah Admin Baru
+                        </button>
+                    </div>
+                </div>
+
+                <div class="filter-header-bar fade-in-up">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="ph-bold ph-shield-check" style="font-size: 1.25rem; color: var(--primary);"></i>
+                        <span style="font-weight: 600;">Daftar Administrator Layanan Kampus</span>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="searchAdminInput" class="form-control" placeholder="Cari nama atau username..." style="width: 250px; padding: 0.4rem 0.8rem;" oninput="renderAdminTable()">
+                    </div>
+                </div>
+
+                <div class="table-wrapper fade-in-up">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nama Lengkap</th>
+                                <th>Username</th>
+                                <th>Kontak / No. HP</th>
+                                <th>Bidang Tugas</th>
+                                <th>Status</th>
+                                <th>Tanggal Dibuat</th>
+                                <th style="text-align: right;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="superAdminTableBody">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 3: KELOLA PETUGAS -->
+            <div id="tab-kelola-petugas" class="admin-tab">
+                <div class="page-header fade-in-up">
+                    <div>
+                        <h1 class="page-title"><i class="ph-bold ph-whatsapp-logo" style="color: #25D366;"></i> Buku Kontak Petugas Lapangan (WhatsApp)</h1>
+                        <p style="color: var(--text-muted);">Kontak WhatsApp personel penanganan operasional kampus. Petugas dikoordinasikan oleh Admin Layanan secara langsung melalui WhatsApp tanpa akun web.</p>
+                    </div>
+                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                        <button type="button" class="btn btn-outline btn-print" onclick="printSuperPageReport('kelola-petugas')">
+                            <i class="ph-bold ph-printer"></i> Cetak Laporan
+                        </button>
+                        <button class="btn btn-whatsapp" onclick="openAddUserModal('petugas')">
+                            <i class="ph-bold ph-plus-circle"></i> Tambah Kontak Petugas
+                        </button>
+                    </div>
+                </div>
+
+                <div class="filter-header-bar fade-in-up">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="ph-bold ph-whatsapp-logo" style="font-size: 1.25rem; color: #25D366;"></i>
+                        <span style="font-weight: 600;">Daftar Nomor WhatsApp Personel Lapangan</span>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="searchPetugasInput" class="form-control" placeholder="Cari nama atau spesialisasi..." style="width: 250px; padding: 0.4rem 0.8rem;" oninput="renderPetugasTable()">
+                    </div>
+                </div>
+
+                <div class="table-wrapper fade-in-up">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nama Petugas</th>
+                                <th>Nomor WhatsApp</th>
+                                <th>Spesialisasi Lapangan</th>
+                                <th>Status Personel</th>
+                                <th>Tugas Ditangani</th>
+                                <th style="text-align: right;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="superPetugasTableBody">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 4: MONITORING PENGADUAN -->
+            <div id="tab-monitoring" class="admin-tab">
+                <div class="page-header fade-in-up">
+                    <div>
+                        <h1 class="page-title">Monitoring Seluruh Pengaduan Kampus</h1>
+                        <p style="color: var(--text-muted);">Pantau pengaduan dari pelapor, admin penghubung, petugas yang ditugaskan, dan bukti pengerjaan.</p>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-outline btn-print" onclick="printSuperPageReport('monitoring')">
+                            <i class="ph-bold ph-printer"></i> Cetak Laporan
+                        </button>
+                    </div>
+                </div>
+
+                <div class="filter-header-bar fade-in-up">
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <input type="text" id="searchMonitoringInput" class="form-control" placeholder="Cari lokasi atau deskripsi..." style="width: 260px; padding: 0.4rem 0.8rem;" oninput="renderMonitoringTable()">
+                        <select id="filterMonitoringStatus" class="form-control" style="width: 170px; padding: 0.4rem 0.8rem;" onchange="renderMonitoringTable()">
+                            <option value="all">Semua Status</option>
+                            <option value="Menunggu">Menunggu</option>
+                            <option value="Diproses">Diproses</option>
+                            <option value="Selesai">Selesai</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-wrapper fade-in-up">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Pelapor</th>
+                                <th>Lokasi Kejadian</th>
+                                <th>Tanggal</th>
+                                <th>Petugas Eksekutor</th>
+                                <th>Status</th>
+                                <th>Bukti Pengerjaan</th>
+                                <th style="text-align: right;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="superMonitoringTableBody">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Formal Print Footer (Signature, Only visible when printing) -->
+            <div class="print-only print-footer">
+                <div class="print-signature-box">
+                    <p id="printSignCityDate">Cirebon, -</p>
+                    <p id="printSignRole">Super Administrator Kampus,</p>
+                    <div class="print-signature-space"></div>
+                    <p id="printSignName" class="print-signature-name"><strong>Prof. Dr. H. Ahmad Fauzi, M.Ag</strong></p>
+                    <p class="print-signature-id">SIPELIK UIN Siber Syekh Nurjati Cirebon</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL: View Deskripsi Pengaduan -->
+    <div class="overlay" id="descViewModal">
+        <div class="modal" style="max-width: 480px;">
+            <div class="modal-header">
+                <div>
+                    <h3 style="font-size: 1.25rem; color: var(--primary-hover); display: flex; align-items: center; gap: 0.4rem;">
+                        <i class="ph-bold ph-chat-text" style="color: var(--primary);"></i> Deskripsi / Keluhan
+                    </h3>
+                    <p id="descModalSubtitle" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.15rem;"></p>
+                </div>
+                <button class="close-btn" onclick="closeDescModal()"><i class="ph ph-x"></i></button>
+            </div>
+            <div style="background: #F8FAFC; padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border); margin-bottom: 1.25rem;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: var(--primary); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.35rem;">
+                    <i class="ph-fill ph-map-pin"></i> <span id="descModalLocation"></span>
+                </div>
+                <div id="descModalFullText" style="font-size: 0.95rem; line-height: 1.5; color: #1E293B; word-break: break-word;"></div>
+            </div>
+            <div style="display: flex; justify-content: flex-end;">
+                <button type="button" class="btn btn-primary" onclick="closeDescModal()">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Tambah User (Admin / Petugas) -->
+    <div class="overlay" id="addUserModal">
+        <div class="modal" style="max-width: 550px;">
+            <div class="modal-header">
+                <div>
+                    <h3 id="addUserModalTitle" style="font-size: 1.35rem; color: var(--primary-hover);">Tambah Akun Baru</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">Dikelola oleh Super Administrator</p>
+                </div>
+                <button class="close-btn" onclick="closeModal('addUserModal')"><i class="ph ph-x"></i></button>
+            </div>
+            
+            <form id="addUserForm" onsubmit="handleSaveNewUser(event)">
+                <input type="hidden" id="addRole" value="admin">
+
+                <div class="form-group">
+                    <label class="form-label">Nama Lengkap & Gelar</label>
+                    <input type="text" id="addName" class="form-control" placeholder="Contoh: Rina Kusuma, S.Kom / Pak Joko" required>
+                </div>
+
+                <div id="addUserAuthFields" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <input type="text" id="addUsername" class="form-control" placeholder="username login" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" id="addPassword" class="form-control" placeholder="Password default" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Nomor WhatsApp / Kontak</label>
+                    <input type="text" id="addPhone" class="form-control" placeholder="Contoh: 08123456789" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" id="addSpecLabel">Bidang Tugas / Spesialisasi</label>
+                    <input type="text" id="addSpecialization" class="form-control" placeholder="Contoh: Layanan Pengaduan / Kebersihan & Sanitasi Gedung" required>
+                </div>
+
+                <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('addUserModal')">Batal</button>
+                    <button type="submit" id="btnSubmitAddUser" class="btn btn-primary">Simpan Akun</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Edit User -->
+    <div class="overlay" id="editUserModal">
+        <div class="modal" style="max-width: 550px;">
+            <div class="modal-header">
+                <div>
+                    <h3 id="editUserModalTitle" style="font-size: 1.35rem; color: var(--primary-hover);">Edit Data Akun</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.2rem;">Perbarui data atau reset password pengguna</p>
+                </div>
+                <button class="close-btn" onclick="closeModal('editUserModal')"><i class="ph ph-x"></i></button>
+            </div>
+            
+            <form id="editUserForm" onsubmit="handleSaveEditUser(event)">
+                <input type="hidden" id="editUserId">
+                <input type="hidden" id="editUserRole">
+
+                <div class="form-group">
+                    <label class="form-label">Nama Lengkap</label>
+                    <input type="text" id="editName" class="form-control" required>
+                </div>
+
+                <div id="editUserAuthFields" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <input type="text" id="editUsername" class="form-control" disabled style="background: #F1F5F9; cursor: not-allowed;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password Baru <small style="color: var(--text-muted);">(Kosongkan bila tetap)</small></label>
+                        <input type="password" id="editPassword" class="form-control" placeholder="Password baru">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Nomor WhatsApp / Kontak</label>
+                    <input type="text" id="editPhone" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" id="editSpecLabel">Bidang Tugas / Spesialisasi</label>
+                    <input type="text" id="editSpecialization" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Status Akun</label>
+                    <select id="editStatus" class="form-control">
+                        <option value="Aktif">Aktif</option>
+                        <option value="Nonaktif">Nonaktif</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('editUserModal')">Batal</button>
+                    <button type="submit" id="btnSubmitEditUser" class="btn btn-primary">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Detail Monitoring Pengaduan -->
+    <div class="overlay" id="superDetailModal">
+        <div class="modal" style="max-width: 720px;">
+            <div class="modal-header">
+                <div>
+                    <h3 style="font-size: 1.45rem; color: var(--primary-hover);">Detail & Verifikasi Pengaduan</h3>
+                    <p id="superDetailReportId" style="font-size: 0.85rem; color: var(--text-muted);"></p>
+                </div>
+                <button class="close-btn" onclick="closeModal('superDetailModal')"><i class="ph ph-x"></i></button>
+            </div>
+            
+            <div id="superDetailModalContent" style="margin-bottom: 1rem;">
+                <!-- Injected by JS -->
+            </div>
+
+            <div style="border-top: 1px solid var(--border); padding-top: 1.25rem;">
+                <h4 style="margin-bottom: 0.75rem; font-size: 1.05rem; color: var(--super-dark);">Perbarui Status & Hasil Pengerjaan</h4>
+                <div style="display: grid; grid-template-columns: 200px 1fr; gap: 1rem; margin-bottom: 1rem; align-items: start;" class="modal-grid-2col">
+                    <div>
+                        <label class="form-label" style="font-size: 0.85rem;">Status Laporan</label>
+                        <select id="superStatusSelect" class="form-control" style="font-weight: 500;">
+                            <option value="Menunggu">Menunggu Disposisi</option>
+                            <option value="Diproses">Diproses Petugas</option>
+                            <option value="Selesai">Selesai Ditangani</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" style="font-size: 0.85rem;">Catatan Pengerjaan Petugas (Hasil Lapangan)</label>
+                        <input type="text" id="superPetugasNotesInput" class="form-control" placeholder="Contoh: Pekerjaan telah diselesaikan oleh petugas.">
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('superDetailModal')">Tutup</button>
+                    <button type="button" id="superStatusSaveBtn" class="btn btn-primary"><i class="ph-bold ph-floppy-disk"></i> Simpan Pembaruan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.API_BASE || (
+            (window.location.protocol === 'file:' || (window.location.port && window.location.port !== '3000'))
+            ? 'http://localhost:3000/api'
+            : '/api'
+        );
+
+        // State
+        let allUsers = [];
+        let allReports = [];
+        let superChartInstance = null;
+
+        function showSuperToast(msg, type = 'success') {
+            const el = document.getElementById('superToast');
+            el.className = `toast-super ${type} show`;
+            el.innerHTML = `<i class="ph-bold ${type === 'success' ? 'ph-check-circle' : 'ph-warning-circle'}"></i> <span>${msg}</span>`;
+            setTimeout(() => { el.classList.remove('show'); }, 3000);
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        window.openDescModal = function(repId) {
+            const rep = allReports.find(r => r.id === repId);
+            if (!rep) return;
+            const cleanName = (rep.reporterName || 'Ahmad').replace(/\s*\(?Mahasiswa\)?/gi, '').trim() || 'Ahmad';
+            document.getElementById('descModalSubtitle').textContent = `Laporan #PGD-${rep.id} • Pelapor: ${cleanName} (Mahasiswa)`;
+            document.getElementById('descModalLocation').textContent = rep.location || '-';
+            document.getElementById('descModalFullText').textContent = rep.desc || 'Tidak ada deskripsi keluhan tambahan.';
+            document.getElementById('descViewModal').classList.add('active');
+        };
+
+        window.closeDescModal = function() {
+            document.getElementById('descViewModal').classList.remove('active');
+        };
+
+        window.printSuperPageReport = function(tabName) {
+            if (tabName) {
+                switchSuperTab(tabName);
+            }
+            const activeTab = document.querySelector('.admin-tab.active');
+            const currentTabId = activeTab ? activeTab.id : 'tab-dashboard';
+
+            let title = 'LAPORAN EKSEKUTIF SISTEM PENGADUAN SIPELIK';
+            if (currentTabId === 'tab-dashboard') {
+                title = 'LAPORAN EKSEKUTIF & STATISTIK SISTEM PENGADUAN SIPELIK';
+            } else if (currentTabId === 'tab-kelola-admin') {
+                title = 'LAPORAN DATA MANAJEMEN AKUN ADMINISTRATOR LAYANAN';
+            } else if (currentTabId === 'tab-kelola-petugas') {
+                title = 'LAPORAN BUKU KONTAK PERSONEL PETUGAS LAPANGAN';
+            } else if (currentTabId === 'tab-monitoring') {
+                title = 'LAPORAN MONITORING SELURUH PENGADUAN KAMPUS';
+            }
+
+            const titleEl = document.getElementById('printDocTitle');
+            if (titleEl) titleEl.textContent = title;
+
+            const metaEl = document.getElementById('printDocMeta');
+            const now = new Date();
+            const dateFormatted = now.toLocaleDateString('id-ID', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            const timeFormatted = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            if (metaEl) metaEl.textContent = `Dicetak pada: ${dateFormatted} • Pukul ${timeFormatted} WIB`;
+
+            const signCityDate = document.getElementById('printSignCityDate');
+            if (signCityDate) signCityDate.textContent = `Cirebon, ${dateFormatted}`;
+
+            const superAdminName = document.getElementById('superAdminName')?.textContent || 'Prof. Dr. H. Ahmad Fauzi, M.Ag';
+            const signName = document.getElementById('printSignName');
+            if (signName) signName.innerHTML = `<strong>${superAdminName}</strong>`;
+
+            setTimeout(() => {
+                window.print();
+            }, 100);
+        };
+
+        window.toggleSidebarCollapse = function() {
+            const isMobile = window.innerWidth <= 992;
+            const sidebar = document.getElementById('appSidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            const container = document.querySelector('.dashboard-container') || document.body;
+            const floatingBtn = document.getElementById('btnSidebarExpandFloating');
+
+            if (isMobile) {
+                if (sidebar) sidebar.classList.toggle('open');
+                if (backdrop) backdrop.classList.toggle('active');
+            } else {
+                const isCollapsed = container.classList.toggle('sidebar-collapsed');
+                if (sidebar) sidebar.classList.toggle('collapsed', isCollapsed);
+                if (floatingBtn) floatingBtn.classList.toggle('show', isCollapsed);
+                if (superChartInstance) setTimeout(() => superChartInstance.resize(), 320);
+            }
+        };
+
+        window.toggleSidebar = function() {
+            window.toggleSidebarCollapse();
+        };
+
+        function switchSuperTab(tabName) {
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+
+            const tab = document.getElementById('tab-' + tabName);
+            const nav = document.getElementById('nav-' + tabName);
+            if (tab) tab.classList.add('active');
+            if (nav) nav.classList.add('active');
+
+            // Auto close mobile drawer if open
+            const sidebar = document.getElementById('appSidebar');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            if (sidebar && sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+                if (backdrop) backdrop.classList.remove('active');
+            }
+
+            if (tabName === 'dashboard' && superChartInstance) {
+                setTimeout(() => superChartInstance.resize(), 100);
+            }
+        }
+
+        async function fetchInitialData() {
+            try {
+                const [resUsers, resReports] = await Promise.all([
+                    fetch(`${API_BASE}/users`),
+                    fetch(`${API_BASE}/reports`)
+                ]);
+
+                allUsers = await resUsers.json();
+                allReports = await resReports.json();
+
+                updateDashboardStats();
+                renderAdminTable();
+                renderPetugasTable();
+                renderMonitoringTable();
+                initOrUpdateChart();
+            } catch (err) {
+                console.error(err);
+                showSuperToast('Gagal memuat data dari server!', 'error');
+            }
+        }
+
+        function updateDashboardStats() {
+            const admins = allUsers.filter(u => u.role === 'admin' && u.status === 'Aktif');
+            const petugas = allUsers.filter(u => u.role === 'petugas' && u.status === 'Aktif');
+            const total = allReports.length;
+            const selesai = allReports.filter(r => r.status === 'Selesai').length;
+
+            document.getElementById('statTotalAdmin').textContent = admins.length;
+            document.getElementById('statTotalPetugas').textContent = petugas.length;
+            document.getElementById('statTotalLaporan').textContent = total;
+            document.getElementById('statTotalSelesai').textContent = selesai;
+        }
+
+        function initOrUpdateChart() {
+            const ctx = document.getElementById('superOverviewChart');
+            if (!ctx) return;
+
+            const menunggu = allReports.filter(r => r.status === 'Menunggu').length;
+            const proses = allReports.filter(r => r.status === 'Diproses').length;
+            const selesai = allReports.filter(r => r.status === 'Selesai').length;
+
+            if (superChartInstance) {
+                superChartInstance.data.datasets[0].data = [menunggu, proses, selesai];
+                superChartInstance.update();
+                return;
+            }
+
+            superChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Menunggu Verifikasi', 'Sedang Dikerjakan (Diproses)', 'Tuntas Selesai'],
+                    datasets: [{
+                        label: 'Jumlah Kasus',
+                        data: [menunggu, proses, selesai],
+                        backgroundColor: ['#F59E0B', '#C1933B', '#10B981'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    }
+                }
+            });
+        }
+
+        // RENDER ADMIN TABLE
+        function renderAdminTable() {
+            const tbody = document.getElementById('superAdminTableBody');
+            const search = (document.getElementById('searchAdminInput')?.value || '').toLowerCase();
+            const admins = allUsers.filter(u => u.role === 'admin');
+
+            tbody.innerHTML = '';
+            const filtered = admins.filter(u => 
+                u.name.toLowerCase().includes(search) || 
+                u.username.toLowerCase().includes(search) || 
+                (u.specialization || '').toLowerCase().includes(search)
+            );
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">Tidak ada data Admin yang cocok.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(admin => {
+                const isAktif = admin.status === 'Aktif';
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="nowrap"><strong>#ADM-${admin.id}</strong></td>
+                        <td>
+                            <div style="font-weight: 600; color: #1E293B; font-size: 0.95rem;">${admin.name}</div>
+                        </td>
+                        <td class="nowrap"><code style="background: #F1F5F9; padding: 3px 8px; border-radius: 4px; font-weight: 600;">${admin.username}</code></td>
+                        <td class="nowrap">
+                            <div class="table-cell-list">
+                                <div class="table-list-item">
+                                    <i class="ph-bold ph-phone" style="color: var(--primary);"></i>
+                                    <span>${admin.phone || '-'}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="table-cell-list">
+                                <div class="table-list-item">
+                                    <i class="ph-bold ph-briefcase" style="color: #64748B;"></i>
+                                    <span>${admin.specialization || 'Layanan Kampus Umum'}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="nowrap">
+                            <span class="pill-status ${isAktif ? 'pill-active' : 'pill-inactive'}">
+                                <i class="ph-fill ${isAktif ? 'ph-check-circle' : 'ph-x-circle'}"></i> ${admin.status}
+                            </span>
+                        </td>
+                        <td class="nowrap">
+                            <div class="table-cell-list">
+                                <div class="table-list-item text-sub nowrap">
+                                    <i class="ph-bold ph-calendar-blank"></i>
+                                    <span>${admin.createdAt || '-'}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="nowrap">
+                            <div class="action-btns" style="justify-content: flex-end;">
+                                <button class="action-btn btn-status-toggle ${isAktif ? '' : 'inactive'}" title="${isAktif ? 'Nonaktifkan Akun' : 'Aktifkan Akun'}" onclick="toggleUserStatus(${admin.id}, '${admin.status}')">
+                                    <i class="ph-bold ${isAktif ? 'ph-toggle-right' : 'ph-toggle-left'}"></i>
+                                </button>
+                                <button class="action-btn btn-edit-user" title="Edit Admin" onclick="openEditUserModal(${admin.id})">
+                                    <i class="ph-bold ph-pencil-simple"></i>
+                                </button>
+                                <button class="action-btn btn-delete-user" title="Hapus Admin" onclick="confirmDeleteUser(${admin.id}, '${admin.name}')">
+                                    <i class="ph-bold ph-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // RENDER PETUGAS TABLE
+        function renderPetugasTable() {
+            const tbody = document.getElementById('superPetugasTableBody');
+            const search = (document.getElementById('searchPetugasInput')?.value || '').toLowerCase();
+            const petugasList = allUsers.filter(u => u.role === 'petugas');
+
+            tbody.innerHTML = '';
+            const filtered = petugasList.filter(u => 
+                u.name.toLowerCase().includes(search) || 
+                (u.phone || '').includes(search) || 
+                (u.specialization || '').toLowerCase().includes(search)
+            );
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">Tidak ada kontak Petugas yang cocok.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(p => {
+                const isAktif = p.status === 'Aktif';
+                const taskCount = allReports.filter(r => r.assignedPetugasId === p.id).length;
+                const cleanPhone = (p.phone || '').replace(/[^0-9]/g, '');
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="nowrap"><strong>#PTG-${p.id}</strong></td>
+                        <td>
+                            <div style="font-weight: 600; color: #1E293B; font-size: 0.95rem;">${p.name}</div>
+                        </td>
+                        <td class="nowrap">
+                            <div class="table-cell-list">
+                                <a href="https://wa.me/${cleanPhone}" target="_blank" class="table-list-item wa-link" title="Uji Chat WhatsApp">
+                                    <i class="ph-bold ph-whatsapp-logo"></i>
+                                    <span>${p.phone || '-'}</span>
+                                </a>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="table-cell-list">
+                                <div class="table-list-item">
+                                    <i class="ph-bold ph-wrench" style="color: var(--primary);"></i>
+                                    <strong>${p.specialization || 'Umum'}</strong>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="nowrap">
+                            <span class="pill-status ${isAktif ? 'pill-active' : 'pill-inactive'}">
+                                <i class="ph-fill ${isAktif ? 'ph-check-circle' : 'ph-x-circle'}"></i> ${p.status}
+                            </span>
+                        </td>
+                        <td class="nowrap">
+                            <span class="badge ${taskCount > 0 ? 'badge-process' : 'badge-pending'}" style="font-size: 0.8rem;">
+                                ${taskCount} Tugas
+                            </span>
+                        </td>
+                        <td class="nowrap">
+                            <div class="action-btns" style="justify-content: flex-end;">
+                                <a href="https://wa.me/${cleanPhone}" target="_blank" class="action-btn" title="Chat WhatsApp" style="color: #25D366; background: rgba(37, 211, 102, 0.1);">
+                                    <i class="ph-bold ph-whatsapp-logo"></i>
+                                </a>
+                                <button class="action-btn btn-status-toggle ${isAktif ? '' : 'inactive'}" title="${isAktif ? 'Nonaktifkan Status' : 'Aktifkan Status'}" onclick="toggleUserStatus(${p.id}, '${p.status}')">
+                                    <i class="ph-bold ${isAktif ? 'ph-toggle-right' : 'ph-toggle-left'}"></i>
+                                </button>
+                                <button class="action-btn btn-edit-user" title="Edit Kontak" onclick="openEditUserModal(${p.id})">
+                                    <i class="ph-bold ph-pencil-simple"></i>
+                                </button>
+                                <button class="action-btn btn-delete-user" title="Hapus Kontak" onclick="confirmDeleteUser(${p.id}, '${p.name}')">
+                                    <i class="ph-bold ph-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // RENDER MONITORING TABLE
+        function renderMonitoringTable() {
+            const tbody = document.getElementById('superMonitoringTableBody');
+            const search = (document.getElementById('searchMonitoringInput')?.value || '').toLowerCase();
+            const statusFilter = document.getElementById('filterMonitoringStatus')?.value || 'all';
+
+            tbody.innerHTML = '';
+            let filtered = allReports.filter(r => {
+                const matchSearch = r.location.toLowerCase().includes(search) || (r.desc || '').toLowerCase().includes(search);
+                const matchStatus = statusFilter === 'all' || r.status === statusFilter;
+                return matchSearch && matchStatus;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-muted); padding: 2rem;">Tidak ada pengaduan yang sesuai.</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(rep => {
+                let badgeClass = 'badge-process';
+                if (rep.status === 'Selesai') badgeClass = 'badge-success';
+                if (rep.status === 'Menunggu') badgeClass = 'badge-pending';
+
+                const proofBadge = rep.petugasProofImg ? 
+                    `<span style="color: var(--success); font-weight: 600; font-size: 0.82rem;"><i class="ph-bold ph-image"></i> Ada Foto Bukti</span>` : 
+                    `<span style="color: var(--text-muted); font-size: 0.82rem;">Belum ada</span>`;
+
+                const dateParts = rep.date ? rep.date.split(',') : ['-'];
+                const dateOnly = dateParts[0].trim();
+                const timeOnly = dateParts[1] ? dateParts[1].trim() : '';
+
+                const cleanReporter = (rep.reporterName || 'Ahmad').replace(/\s*\(?Mahasiswa\)?/gi, '').trim() || 'Ahmad';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="nowrap"><strong>#PGD-${rep.id}</strong></td>
+                        <td>
+                            <div class="table-cell-list">
+                                <div class="table-list-item main-title">
+                                    <i class="ph-bold ph-user"></i>
+                                    <span>${cleanReporter}</span>
+                                </div>
+                                <div class="table-list-item text-sub">
+                                    <span class="role-tag-mini pelapor">Mahasiswa</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="table-cell-list">
+                                <div class="table-list-item main-title primary">
+                                    <i class="ph-fill ph-map-pin"></i>
+                                    <span>${rep.location}</span>
+                                </div>
+                                ${rep.desc ? `
+                                <div>
+                                    <button type="button" class="btn-view-desc" onclick="openDescModal(${rep.id})" title="Lihat Deskripsi Lengkap">
+                                        <i class="ph-bold ph-chat-text"></i> View Deskripsi
+                                    </button>
+                                </div>` : ''}
+                            </div>
+                        </td>
+                        <td class="nowrap">
+                            <div class="table-cell-list">
+                                <div class="table-list-item nowrap">
+                                    <i class="ph-bold ph-calendar-blank"></i>
+                                    <span>${dateOnly}</span>
+                                </div>
+                                ${timeOnly ? `
+                                <div class="table-list-item text-sub nowrap">
+                                    <i class="ph-bold ph-clock"></i>
+                                    <span>${timeOnly}</span>
+                                </div>` : ''}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="table-cell-list">
+                                ${rep.assignedPetugasName ? `
+                                <div class="table-list-item worker-name">
+                                    <i class="ph-bold ph-hard-hat"></i>
+                                    <span>${rep.assignedPetugasName}</span>
+                                </div>
+                                ${rep.assignedPetugasPhone ? `
+                                <div class="table-list-item worker-phone">
+                                    <i class="ph-bold ph-whatsapp-logo"></i>
+                                    <span>${rep.assignedPetugasPhone}</span>
+                                </div>` : ''}
+                                ` : `
+                                <div class="table-list-item text-sub nowrap" style="color: var(--warning); font-weight: 500;">
+                                    <i class="ph-bold ph-clock"></i>
+                                    <span>Belum Didisposisikan</span>
+                                </div>
+                                `}
+                            </div>
+                        </td>
+                        <td class="nowrap"><span class="badge ${badgeClass}">${rep.status}</span></td>
+                        <td class="nowrap">${proofBadge}</td>
+                        <td class="nowrap">
+                            <div class="action-btns" style="justify-content: flex-end;">
+                                <button class="action-btn btn-view" title="Detail Pengaduan" onclick="openSuperDetailReport(${rep.id})">
+                                    <i class="ph-bold ph-eye"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // MODAL ADD USER
+        function openAddUserModal(role) {
+            document.getElementById('addRole').value = role;
+            const title = document.getElementById('addUserModalTitle');
+            const specLabel = document.getElementById('addSpecLabel');
+            const specInput = document.getElementById('addSpecialization');
+            const authFields = document.getElementById('addUserAuthFields');
+            const addUsername = document.getElementById('addUsername');
+            const addPassword = document.getElementById('addPassword');
+            const submitBtn = document.getElementById('btnSubmitAddUser');
+
+            if (role === 'admin') {
+                title.innerHTML = '<i class="ph-bold ph-shield-check" style="color: var(--primary);"></i> Tambah Admin Layanan Baru';
+                specLabel.textContent = 'Bidang Tugas / Divisi Layanan';
+                specInput.placeholder = 'Contoh: Admin Layanan Pengaduan & Disposisi';
+                if (authFields) authFields.style.display = 'grid';
+                if (addUsername) addUsername.required = true;
+                if (addPassword) addPassword.required = true;
+                if (submitBtn) {
+                    submitBtn.className = 'btn btn-primary';
+                    submitBtn.innerHTML = 'Simpan Akun Admin';
+                }
+            } else {
+                title.innerHTML = '<i class="ph-bold ph-whatsapp-logo" style="color: #25D366;"></i> Tambah Kontak Petugas Lapangan';
+                specLabel.textContent = 'Spesialisasi Lapangan / Area Tugas';
+                specInput.placeholder = 'Contoh: Kebersihan & Sanitasi Gedung / Kelistrikan';
+                if (authFields) authFields.style.display = 'none';
+                if (addUsername) addUsername.required = false;
+                if (addPassword) addPassword.required = false;
+                if (submitBtn) {
+                    submitBtn.className = 'btn btn-whatsapp';
+                    submitBtn.innerHTML = '<i class="ph-fill ph-whatsapp-logo"></i> Simpan Kontak Petugas';
+                }
+            }
+
+            document.getElementById('addUserForm').reset();
+            document.getElementById('addRole').value = role;
+            document.getElementById('addUserModal').classList.add('active');
+        }
+
+        async function handleSaveNewUser(e) {
+            e.preventDefault();
+            const role = document.getElementById('addRole').value;
+            const name = document.getElementById('addName').value.trim();
+            const username = document.getElementById('addUsername').value.trim();
+            const password = document.getElementById('addPassword').value.trim();
+            const phone = document.getElementById('addPhone').value.trim();
+            const specialization = document.getElementById('addSpecialization').value.trim();
+
+            const btn = document.getElementById('btnSubmitAddUser');
+            btn.disabled = true;
+            btn.innerHTML = 'Menyimpan...';
+
+            try {
+                const res = await fetch(`${API_BASE}/users`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, username, password, role, phone, specialization })
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    showSuperToast(data.error || 'Gagal menambahkan pengguna', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = 'Simpan';
+                    return;
+                }
+
+                showSuperToast(role === 'petugas' ? `Kontak WhatsApp ${name} berhasil ditambahkan!` : `Akun Admin ${name} berhasil didaftarkan!`, 'success');
+                closeModal('addUserModal');
+                fetchInitialData();
+            } catch (err) {
+                console.error(err);
+                showSuperToast('Terjadi kesalahan jaringan!', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Simpan';
+            }
+        }
+
+        // EDIT USER
+        function openEditUserModal(userId) {
+            const user = allUsers.find(u => u.id === userId);
+            if (!user) return;
+
+            document.getElementById('editUserId').value = user.id;
+            document.getElementById('editUserRole').value = user.role;
+            document.getElementById('editName').value = user.name;
+            document.getElementById('editUsername').value = user.username;
+            document.getElementById('editPassword').value = '';
+            document.getElementById('editPhone').value = user.phone || '';
+            document.getElementById('editSpecialization').value = user.specialization || '';
+            document.getElementById('editStatus').value = user.status || 'Aktif';
+
+            const authFields = document.getElementById('editUserAuthFields');
+            const title = document.getElementById('editUserModalTitle');
+            const specLabel = document.getElementById('editSpecLabel');
+
+            if (user.role === 'admin') {
+                title.textContent = 'Edit Data Akun Admin';
+                specLabel.textContent = 'Bidang Tugas / Divisi Layanan';
+                if (authFields) authFields.style.display = 'grid';
+            } else {
+                title.innerHTML = '<i class="ph-bold ph-whatsapp-logo" style="color: #25D366;"></i> Edit Kontak Petugas Lapangan';
+                specLabel.textContent = 'Spesialisasi Lapangan';
+                if (authFields) authFields.style.display = 'none';
+            }
+
+            document.getElementById('editUserModal').classList.add('active');
+        }
+
+        async function handleSaveEditUser(e) {
+            e.preventDefault();
+            const id = document.getElementById('editUserId').value;
+            const name = document.getElementById('editName').value.trim();
+            const password = document.getElementById('editPassword').value.trim();
+            const phone = document.getElementById('editPhone').value.trim();
+            const specialization = document.getElementById('editSpecialization').value.trim();
+            const status = document.getElementById('editStatus').value;
+
+            const payload = { name, phone, specialization, status };
+            if (password) payload.password = password;
+
+            const btn = document.getElementById('btnSubmitEditUser');
+            btn.disabled = true;
+            btn.innerHTML = 'Menyimpan...';
+
+            try {
+                const res = await fetch(`${API_BASE}/users/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (!res.ok) {
+                    showSuperToast(data.error || 'Gagal update akun', 'error');
+                    return;
+                }
+
+                showSuperToast('Data akun berhasil diperbarui!', 'success');
+                closeModal('editUserModal');
+                fetchInitialData();
+            } catch (err) {
+                console.error(err);
+                showSuperToast('Terjadi kesalahan jaringan!', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Simpan Perubahan';
+            }
+        }
+
+        async function toggleUserStatus(id, currentStatus) {
+            const newStatus = currentStatus === 'Aktif' ? 'Nonaktif' : 'Aktif';
+            try {
+                const res = await fetch(`${API_BASE}/users/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                if (res.ok) {
+                    showSuperToast(`Status akun berhasil diubah menjadi ${newStatus}`, 'success');
+                    fetchInitialData();
+                } else {
+                    const data = await res.json();
+                    showSuperToast(data.error || 'Gagal mengubah status', 'error');
+                }
+            } catch (err) {
+                showSuperToast('Gagal terhubung ke server', 'error');
+            }
+        }
+
+        async function confirmDeleteUser(id, name) {
+            if (!confirm(`Apakah Anda yakin ingin menghapus akun "${name}"? Tindakan ini tidak dapat dibatalkan.`)) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/users/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    showSuperToast(data.error || 'Gagal menghapus pengguna', 'error');
+                    return;
+                }
+
+                showSuperToast(`Akun ${name} berhasil dihapus.`, 'success');
+                fetchInitialData();
+            } catch (err) {
+                showSuperToast('Gagal terhubung ke server', 'error');
+            }
+        }
+
+        // DETAIL MONITORING REPORT
+        function openSuperDetailReport(repId) {
+            const rep = allReports.find(r => r.id === repId);
+            if (!rep) return;
+
+            document.getElementById('superDetailReportId').textContent = `Laporan #PGD-${rep.id} • Masuk: ${rep.date || '-'}`;
+
+            let badgeClass = 'badge-process';
+            if (rep.status === 'Selesai') badgeClass = 'badge-success';
+            if (rep.status === 'Menunggu') badgeClass = 'badge-pending';
+
+            let currentSuperProofBase64 = rep.petugasProofImg || null;
+
+            window.removeSuperProof = function() {
+                currentSuperProofBase64 = null;
+                const wrapper = document.getElementById('superProofPreviewWrapper');
+                const uploadZone = document.getElementById('superProofUploadZone');
+                const fileInput = document.getElementById('superProofFileInput');
+                if (fileInput) fileInput.value = '';
+                if (wrapper) wrapper.style.display = 'none';
+                if (uploadZone) uploadZone.style.display = 'flex';
+                showSuperToast('Foto bukti dihapus (Klik "Simpan Pembaruan" untuk konfirmasi).', 'warning');
+            };
+
+            window.handleSuperProofFileChange = function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (file.size > 10 * 1024 * 1024) {
+                    showSuperToast('Ukuran foto maksimal 10MB', 'error');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    currentSuperProofBase64 = evt.target.result;
+                    const wrapper = document.getElementById('superProofPreviewWrapper');
+                    const uploadZone = document.getElementById('superProofUploadZone');
+                    const imgEl = document.getElementById('superProofPreviewImg');
+                    if (imgEl) imgEl.src = currentSuperProofBase64;
+                    if (wrapper) wrapper.style.display = 'block';
+                    if (uploadZone) uploadZone.style.display = 'none';
+
+                    const statusSelect = document.getElementById('superStatusSelect');
+                    if (statusSelect && statusSelect.value !== 'Selesai') {
+                        statusSelect.value = 'Selesai';
+                    }
+                    showSuperToast('Foto bukti berhasil dipilih! Klik "Simpan Pembaruan" untuk menyimpan.', 'info');
+                };
+                reader.readAsDataURL(file);
+            };
+
+            const content = document.getElementById('superDetailModalContent');
+            content.innerHTML = `
+                <div class="modal-grid-2col">
+                    <div>
+                        <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.35rem;">Foto Bukti Pelapor (Mahasiswa):</div>
+                        <img src="${rep.img}" style="width: 100%; height: 160px; object-fit: cover; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                    </div>
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+                            <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted);">Foto Bukti Pengerjaan (Petugas):</div>
+                            <span style="font-size: 0.75rem; color: var(--primary); font-weight: 600;"><i class="ph-bold ph-upload-simple"></i> Bisa Upload Foto</span>
+                        </div>
+
+                        <input type="file" id="superProofFileInput" accept="image/*" style="display: none;" onchange="window.handleSuperProofFileChange(event)">
+
+                        <div id="superProofUploadZone" class="proof-upload-box" style="${rep.petugasProofImg ? 'display: none;' : ''}" onclick="document.getElementById('superProofFileInput').click()">
+                            <i class="ph-bold ph-camera-plus" style="font-size: 2.2rem; color: var(--primary); margin-bottom: 0.35rem;"></i>
+                            <div style="font-weight: 600; font-size: 0.88rem; color: var(--primary);">Upload Foto Bukti Petugas</div>
+                            <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.2rem;">Klik untuk pilih foto kiriman WA petugas (JPG/PNG)</div>
+                        </div>
+
+                        <div id="superProofPreviewWrapper" class="proof-preview-wrapper" style="${rep.petugasProofImg ? '' : 'display: none;'}">
+                            <img id="superProofPreviewImg" src="${rep.petugasProofImg || ''}">
+                            <div class="proof-preview-overlay">
+                                <span><i class="ph-bold ph-check-circle" style="color: #34D399;"></i> Foto Bukti Petugas</span>
+                                <div style="display: flex; gap: 0.35rem;">
+                                    <button type="button" class="btn-proof-action" onclick="document.getElementById('superProofFileInput').click()">
+                                        <i class="ph-bold ph-arrows-clockwise"></i> Ganti
+                                    </button>
+                                    <button type="button" class="btn-proof-action danger" onclick="window.removeSuperProof()">
+                                        <i class="ph-bold ph-trash"></i> Hapus
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: var(--bg-color); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.25rem; font-size: 0.9rem; display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>Pelapor:</strong> ${rep.reporterName || 'Ahmad Mahasiswa'} (Mahasiswa)
+                        </div>
+                        <span class="badge ${badgeClass}">${rep.status}</span>
+                    </div>
+                    <div>
+                        <strong>Lokasi Kejadian:</strong> <i class="ph-fill ph-map-pin" style="color: var(--primary);"></i> ${rep.location}
+                    </div>
+                    <div>
+                        <strong>Deskripsi Masalah:</strong> ${rep.desc}
+                    </div>
+                    <div style="border-top: 1px solid var(--border); padding-top: 0.65rem;">
+                        <strong>Petugas Lapangan:</strong> 
+                        ${rep.assignedPetugasName ? `<span style="color: #7B5024; font-weight: 700;">👷 ${rep.assignedPetugasName} ${rep.assignedPetugasPhone ? '(' + rep.assignedPetugasPhone + ')' : ''}</span>` : '<span style="color: var(--warning); font-weight: 600;">Belum didisposisikan oleh Admin</span>'}
+                    </div>
+                    <div>
+                        <strong>Instruksi Disposisi Admin:</strong> 
+                        <span style="font-style: italic; color: var(--text-muted);">${rep.adminNotes || 'Belum ada catatan penugasan.'}</span>
+                    </div>
+                    <div>
+                        <strong>Laporan Hasil Lapangan dari Petugas:</strong> 
+                        <span style="font-style: italic; color: #065F46; font-weight: 500;">${rep.petugasNotes || 'Belum dilaporkan.'}</span>
+                    </div>
+                </div>
+            `;
+
+            // set current status dropdown & notes input
+            document.getElementById('superStatusSelect').value = rep.status;
+            const notesInput = document.getElementById('superPetugasNotesInput');
+            if (notesInput) notesInput.value = rep.petugasNotes || '';
+
+            document.getElementById('superStatusSaveBtn').onclick = async function() {
+                const newStatus = document.getElementById('superStatusSelect').value;
+                const notesVal = document.getElementById('superPetugasNotesInput')?.value || '';
+                const btn = document.getElementById('superStatusSaveBtn');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> Menyimpan...';
+
+                try {
+                    const res = await fetch(`${API_BASE}/reports/${rep.id}`, {
+                        method: 'PUT',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            status: newStatus,
+                            petugasProofImg: currentSuperProofBase64,
+                            petugasNotes: notesVal
+                        })
+                    });
+                    if (!res.ok) throw new Error('Gagal simpan data ke server');
+
+                    rep.status = newStatus;
+                    rep.petugasProofImg = currentSuperProofBase64;
+                    rep.petugasNotes = notesVal;
+
+                    closeModal('superDetailModal');
+                    showSuperToast('Laporan & foto bukti berhasil disimpan!', 'success');
+                    updateDashboardStats();
+                    renderMonitoringTable();
+                    initOrUpdateChart();
+                } catch(err) {
+                    showSuperToast('Gagal update laporan: ' + err.message, 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="ph-bold ph-floppy-disk"></i> Simpan Pembaruan';
+                }
+            };
+
+            document.getElementById('superDetailModal').classList.add('active');
+        }
+
+        function handleLogout() {
+            if (confirm('Keluar dari sesi Super Administrator?')) {
+                localStorage.removeItem('sipelik_user');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Check authentication
+        document.addEventListener('DOMContentLoaded', () => {
+            const userStr = localStorage.getItem('sipelik_user');
+            if (userStr) {
+                try {
+                    const u = JSON.parse(userStr);
+                    if (u.name) document.getElementById('superAdminName').textContent = u.name;
+                    // If not superadmin, optionally redirect or warn
+                } catch(e) {}
+            }
+            fetchInitialData();
+        });
+    </script>
+</body>
+</html>
