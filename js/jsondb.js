@@ -15,23 +15,32 @@ const sourceJsonPath = candidatePaths.find(p => fs.existsSync(p)) || candidatePa
 let targetJsonPath = sourceJsonPath;
 if (isNetlify) {
     targetJsonPath = path.join(os.tmpdir(), 'database.json');
-    if (!fs.existsSync(targetJsonPath)) {
-        try {
-            if (fs.existsSync(sourceJsonPath)) {
-                fs.copyFileSync(sourceJsonPath, targetJsonPath);
-            }
-        } catch (e) {
-            console.error('Failed copying database.json to tmpdir:', e);
-        }
-    }
 }
 
 let store = { users: [], reports: [] };
 
+function ensureTargetFile() {
+    if (isNetlify) {
+        if (!fs.existsSync(targetJsonPath)) {
+            try {
+                if (fs.existsSync(sourceJsonPath)) {
+                    fs.copyFileSync(sourceJsonPath, targetJsonPath);
+                } else {
+                    fs.writeFileSync(targetJsonPath, JSON.stringify({ users: [], reports: [] }, null, 2), 'utf8');
+                }
+            } catch (e) {
+                console.error('Failed copying database.json to tmpdir:', e);
+            }
+        }
+    }
+}
+
 function loadStore() {
     try {
-        if (fs.existsSync(targetJsonPath)) {
-            const raw = fs.readFileSync(targetJsonPath, 'utf8');
+        ensureTargetFile();
+        const readPath = fs.existsSync(targetJsonPath) ? targetJsonPath : sourceJsonPath;
+        if (fs.existsSync(readPath)) {
+            const raw = fs.readFileSync(readPath, 'utf8');
             store = JSON.parse(raw);
             if (!Array.isArray(store.users)) store.users = [];
             if (!Array.isArray(store.reports)) store.reports = [];
@@ -43,12 +52,14 @@ function loadStore() {
 
 function saveStore() {
     try {
+        ensureTargetFile();
         fs.writeFileSync(targetJsonPath, JSON.stringify(store, null, 2), 'utf8');
     } catch (e) {
         console.error('Error saving database.json:', e);
     }
 }
 
+// Initial load
 loadStore();
 
 // Default seed users if empty
@@ -65,14 +76,53 @@ if (store.users.length === 0) {
     saveStore();
 }
 
-const dbAdapter = {
-    get(sql, params, callback) {
-        if (typeof params === 'function') {
-            callback = params;
-            params = [];
+/**
+ * Normalizes arguments regardless of signature:
+ * - (sql, callback)
+ * - (sql, [p1, p2], callback)
+ * - (sql, p1, callback)
+ * - (sql, p1, p2, callback)
+ */
+function parseArgs(...args) {
+    let sql = args[0] || '';
+    let callback = null;
+    let params = [];
+
+    const last = args[args.length - 1];
+    if (typeof last === 'function') {
+        callback = last;
+        args = args.slice(0, args.length - 1);
+    } else {
+        callback = () => {};
+    }
+
+    const rest = args.slice(1);
+    if (rest.length === 1) {
+        if (Array.isArray(rest[0])) {
+            params = rest[0];
+        } else if (rest[0] !== undefined && rest[0] !== null) {
+            params = [rest[0]];
         }
-        callback = callback || (() => {});
-        params = params || [];
+    } else if (rest.length > 1) {
+        params = rest;
+    }
+
+    return { sql: (sql || '').trim(), params, callback };
+}
+
+function getParamIndex(sql, fieldName) {
+    const s = sql.toLowerCase();
+    const setIdx = s.indexOf('set');
+    const whereIdx = s.indexOf('where');
+    if (setIdx === -1 || whereIdx === -1) return -1;
+    const setPart = s.slice(setIdx + 3, whereIdx);
+    const parts = setPart.split(',').map(p => p.trim());
+    return parts.findIndex(p => p.startsWith(fieldName.toLowerCase()));
+}
+
+const dbAdapter = {
+    get(...args) {
+        const { sql, params, callback } = parseArgs(...args);
         loadStore();
 
         const s = sql.toLowerCase();
@@ -97,28 +147,23 @@ const dbAdapter = {
 
         // 3. User by ID: SELECT ... FROM users WHERE id = ?
         if (s.includes('from users') && s.includes('id = ?')) {
-            const id = parseInt(params[0]);
-            const found = store.users.find(u => u.id === id);
+            const id = parseInt(params[0], 10);
+            const found = store.users.find(u => parseInt(u.id, 10) === id);
             return callback(null, found ? { ...found } : undefined);
         }
 
         // 4. Report by ID: SELECT ... FROM reports WHERE id = ?
         if (s.includes('from reports') && s.includes('id = ?')) {
-            const id = parseInt(params[0]);
-            const found = store.reports.find(r => r.id === id);
+            const id = parseInt(params[0], 10);
+            const found = store.reports.find(r => parseInt(r.id, 10) === id);
             return callback(null, found ? { ...found } : undefined);
         }
 
         callback(null, undefined);
     },
 
-    all(sql, params, callback) {
-        if (typeof params === 'function') {
-            callback = params;
-            params = [];
-        }
-        callback = callback || (() => {});
-        params = params || [];
+    all(...args) {
+        const { sql, params, callback } = parseArgs(...args);
         loadStore();
 
         const s = sql.toLowerCase();
@@ -129,14 +174,14 @@ const dbAdapter = {
             if (s.includes('role = ?') && params[0]) {
                 list = list.filter(u => u.role === params[0]);
             }
-            list.sort((a, b) => (b.id || 0) - (a.id || 0));
+            list.sort((a, b) => (parseInt(b.id, 10) || 0) - (parseInt(a.id, 10) || 0));
             return callback(null, list.map(u => ({ ...u })));
         }
 
         // 2. List reports: SELECT r.*, u.phone AS petugasPhone FROM reports r LEFT JOIN users u ...
         if (s.includes('from reports')) {
             let list = store.reports.map(r => {
-                const assignedPetugas = r.assignedPetugasId ? store.users.find(u => u.id === r.assignedPetugasId) : null;
+                const assignedPetugas = r.assignedPetugasId ? store.users.find(u => parseInt(u.id, 10) === parseInt(r.assignedPetugasId, 10)) : null;
                 return {
                     ...r,
                     petugasPhone: assignedPetugas ? assignedPetugas.phone : (r.assignedPetugasPhone || null)
@@ -144,8 +189,8 @@ const dbAdapter = {
             });
 
             if (s.includes('assignedpetugasid = ?') && params[0]) {
-                const pid = parseInt(params[0]);
-                list = list.filter(r => r.assignedPetugasId === pid);
+                const pid = parseInt(params[0], 10);
+                list = list.filter(r => parseInt(r.assignedPetugasId, 10) === pid);
             }
             if (s.includes('status = ?')) {
                 const statusIdx = s.includes('assignedpetugasid = ?') ? 1 : 0;
@@ -154,20 +199,15 @@ const dbAdapter = {
                 }
             }
 
-            list.sort((a, b) => (b.id || 0) - (a.id || 0));
+            list.sort((a, b) => (parseInt(b.id, 10) || 0) - (parseInt(a.id, 10) || 0));
             return callback(null, list);
         }
 
         callback(null, []);
     },
 
-    run(sql, params, callback) {
-        if (typeof params === 'function') {
-            callback = params;
-            params = [];
-        }
-        callback = callback || (() => {});
-        params = params || [];
+    run(...args) {
+        const { sql, params, callback } = parseArgs(...args);
         loadStore();
 
         const s = sql.toLowerCase();
@@ -181,7 +221,7 @@ const dbAdapter = {
         // 2. INSERT into users
         if (s.startsWith('insert into users') || s.startsWith('insert or ignore into users')) {
             const username = params[1];
-            if (store.users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+            if (store.users.some(u => u.username.toLowerCase() === (username || '').toLowerCase())) {
                 if (s.includes('ignore')) {
                     return callback.call(ctx, null);
                 }
@@ -189,7 +229,7 @@ const dbAdapter = {
                 return callback.call(ctx, err);
             }
 
-            const maxId = store.users.reduce((m, u) => Math.max(m, u.id || 0), 0);
+            const maxId = store.users.reduce((m, u) => Math.max(m, parseInt(u.id, 10) || 0), 0);
             const newId = maxId + 1;
             const newUser = {
                 id: newId,
@@ -211,7 +251,7 @@ const dbAdapter = {
 
         // 3. INSERT into reports
         if (s.startsWith('insert into reports')) {
-            const maxId = store.reports.reduce((m, r) => Math.max(m, r.id || 0), 0);
+            const maxId = store.reports.reduce((m, r) => Math.max(m, parseInt(r.id, 10) || 0), 0);
             const newId = maxId + 1;
             const newReport = {
                 id: newId,
@@ -239,31 +279,30 @@ const dbAdapter = {
 
         // 4. UPDATE users
         if (s.startsWith('update users')) {
-            const id = parseInt(params[params.length - 1]);
-            const user = store.users.find(u => u.id === id);
+            const id = parseInt(params[params.length - 1], 10);
+            const user = store.users.find(u => parseInt(u.id, 10) === id);
             if (user) {
-                // Dynamically update based on fields in SQL
-                if (s.includes('name = ?')) { const idx = getParamIndex(sql, 'name'); if (idx !== -1) user.name = params[idx]; }
-                if (s.includes('password = ?')) { const idx = getParamIndex(sql, 'password'); if (idx !== -1) user.password = params[idx]; }
-                if (s.includes('phone = ?')) { const idx = getParamIndex(sql, 'phone'); if (idx !== -1) user.phone = params[idx]; }
-                if (s.includes('specialization = ?')) { const idx = getParamIndex(sql, 'specialization'); if (idx !== -1) user.specialization = params[idx]; }
-                if (s.includes('status = ?')) { const idx = getParamIndex(sql, 'status'); if (idx !== -1) user.status = params[idx]; }
-                if (s.includes('role = ?')) { const idx = getParamIndex(sql, 'role'); if (idx !== -1) user.role = params[idx]; }
+                if (s.includes('name = ?')) { const idx = getParamIndex(sql, 'name'); if (idx !== -1 && idx < params.length - 1) user.name = params[idx]; }
+                if (s.includes('password = ?')) { const idx = getParamIndex(sql, 'password'); if (idx !== -1 && idx < params.length - 1) user.password = params[idx]; }
+                if (s.includes('phone = ?')) { const idx = getParamIndex(sql, 'phone'); if (idx !== -1 && idx < params.length - 1) user.phone = params[idx]; }
+                if (s.includes('specialization = ?')) { const idx = getParamIndex(sql, 'specialization'); if (idx !== -1 && idx < params.length - 1) user.specialization = params[idx]; }
+                if (s.includes('status = ?')) { const idx = getParamIndex(sql, 'status'); if (idx !== -1 && idx < params.length - 1) user.status = params[idx]; }
+                if (s.includes('role = ?')) { const idx = getParamIndex(sql, 'role'); if (idx !== -1 && idx < params.length - 1) user.role = params[idx]; }
                 saveStore();
                 ctx.changes = 1;
             }
             return callback.call(ctx, null);
         }
 
-        // 5. UPDATE reports (assign)
-        if (s.startsWith('update reports set') && s.includes('assignedpetugasid = ?')) {
-            const id = parseInt(params[4]);
-            const report = store.reports.find(r => r.id === id);
+        // 5. UPDATE reports (assign route: SET assignedPetugasId = ?, assignedPetugasName = ?, assignedPetugasPhone = ?, adminNotes = ?, status = 'Diproses')
+        if (s.startsWith('update reports set') && s.includes('assignedpetugasphone = ?')) {
+            const id = parseInt(params[params.length - 1], 10);
+            const report = store.reports.find(r => parseInt(r.id, 10) === id);
             if (report) {
-                report.assignedPetugasId = params[0];
-                report.assignedPetugasName = params[1];
-                report.assignedPetugasPhone = params[2];
-                report.adminNotes = params[3];
+                report.assignedPetugasId = params[0] !== undefined ? parseInt(params[0], 10) : report.assignedPetugasId;
+                report.assignedPetugasName = params[1] !== undefined ? params[1] : report.assignedPetugasName;
+                report.assignedPetugasPhone = params[2] !== undefined ? params[2] : report.assignedPetugasPhone;
+                report.adminNotes = params[3] !== undefined ? params[3] : report.adminNotes;
                 report.status = 'Diproses';
                 saveStore();
                 ctx.changes = 1;
@@ -271,10 +310,10 @@ const dbAdapter = {
             return callback.call(ctx, null);
         }
 
-        // 6. UPDATE reports (progress)
+        // 6. UPDATE reports (progress route: SET petugasNotes = COALESCE(?, petugasNotes)...)
         if (s.startsWith('update reports set') && s.includes('petugasnotes = coalesce')) {
-            const id = parseInt(params[3]);
-            const report = store.reports.find(r => r.id === id);
+            const id = parseInt(params[params.length - 1], 10);
+            const report = store.reports.find(r => parseInt(r.id, 10) === id);
             if (report) {
                 if (params[0] !== null && params[0] !== undefined) report.petugasNotes = params[0];
                 if (params[1] !== null && params[1] !== undefined) report.petugasProofImg = params[1];
@@ -287,19 +326,20 @@ const dbAdapter = {
 
         // 7. General UPDATE reports
         if (s.startsWith('update reports')) {
-            const id = parseInt(params[params.length - 1]);
-            const report = store.reports.find(r => r.id === id);
+            const id = parseInt(params[params.length - 1], 10);
+            const report = store.reports.find(r => parseInt(r.id, 10) === id);
             if (report) {
-                if (s.includes('location = ?')) { const idx = getParamIndex(sql, 'location'); if (idx !== -1) report.location = params[idx]; }
-                if (s.includes('lat = ?')) { const idx = getParamIndex(sql, 'lat'); if (idx !== -1) report.lat = params[idx]; }
-                if (s.includes('lng = ?')) { const idx = getParamIndex(sql, 'lng'); if (idx !== -1) report.lng = params[idx]; }
-                if (s.includes('status = ?')) { const idx = getParamIndex(sql, 'status'); if (idx !== -1) report.status = params[idx]; }
+                if (s.includes('location = ?')) { const idx = getParamIndex(sql, 'location'); if (idx !== -1 && idx < params.length - 1) report.location = params[idx]; }
+                if (s.includes('lat = ?')) { const idx = getParamIndex(sql, 'lat'); if (idx !== -1 && idx < params.length - 1) report.lat = params[idx]; }
+                if (s.includes('lng = ?')) { const idx = getParamIndex(sql, 'lng'); if (idx !== -1 && idx < params.length - 1) report.lng = params[idx]; }
+                if (s.includes('status = ?')) { const idx = getParamIndex(sql, 'status'); if (idx !== -1 && idx < params.length - 1) report.status = params[idx]; }
                 if (s.includes('desc = ?')) { const idx = getParamIndex(sql, 'desc'); if (idx !== -1) report.desc = params[idx]; }
-                if (s.includes('adminnotes = ?')) { const idx = getParamIndex(sql, 'adminnotes'); if (idx !== -1) report.adminNotes = params[idx]; }
-                if (s.includes('petugasnotes = ?')) { const idx = getParamIndex(sql, 'petugasnotes'); if (idx !== -1) report.petugasNotes = params[idx]; }
-                if (s.includes('petugasproofimg = ?')) { const idx = getParamIndex(sql, 'petugasproofimg'); if (idx !== -1) report.petugasProofImg = params[idx]; }
-                if (s.includes('assignedpetugasid = ?')) { const idx = getParamIndex(sql, 'assignedpetugasid'); if (idx !== -1) report.assignedPetugasId = params[idx]; }
-                if (s.includes('assignedpetugasname = ?')) { const idx = getParamIndex(sql, 'assignedpetugasname'); if (idx !== -1) report.assignedPetugasName = params[idx]; }
+                if (s.includes('adminnotes = ?')) { const idx = getParamIndex(sql, 'adminnotes'); if (idx !== -1 && idx < params.length - 1) report.adminNotes = params[idx]; }
+                if (s.includes('petugasnotes = ?')) { const idx = getParamIndex(sql, 'petugasnotes'); if (idx !== -1 && idx < params.length - 1) report.petugasNotes = params[idx]; }
+                if (s.includes('petugasproofimg = ?')) { const idx = getParamIndex(sql, 'petugasproofimg'); if (idx !== -1 && idx < params.length - 1) report.petugasProofImg = params[idx]; }
+                if (s.includes('assignedpetugasid = ?')) { const idx = getParamIndex(sql, 'assignedpetugasid'); if (idx !== -1 && idx < params.length - 1) report.assignedPetugasId = parseInt(params[idx], 10); }
+                if (s.includes('assignedpetugasname = ?')) { const idx = getParamIndex(sql, 'assignedpetugasname'); if (idx !== -1 && idx < params.length - 1) report.assignedPetugasName = params[idx]; }
+                if (s.includes('assignedpetugasphone = ?')) { const idx = getParamIndex(sql, 'assignedpetugasphone'); if (idx !== -1 && idx < params.length - 1) report.assignedPetugasPhone = params[idx]; }
                 saveStore();
                 ctx.changes = 1;
             }
@@ -308,9 +348,10 @@ const dbAdapter = {
 
         // 8. DELETE from users
         if (s.startsWith('delete from users')) {
-            const id = parseInt(params[0]);
+            const rawId = params[0] !== undefined ? params[0] : params[params.length - 1];
+            const id = parseInt(rawId, 10);
             const initialLen = store.users.length;
-            store.users = store.users.filter(u => u.id !== id);
+            store.users = store.users.filter(u => parseInt(u.id, 10) !== id);
             saveStore();
             ctx.changes = initialLen - store.users.length;
             return callback.call(ctx, null);
@@ -318,9 +359,10 @@ const dbAdapter = {
 
         // 9. DELETE from reports
         if (s.startsWith('delete from reports')) {
-            const id = parseInt(params[0]);
+            const rawId = params[0] !== undefined ? params[0] : params[params.length - 1];
+            const id = parseInt(rawId, 10);
             const initialLen = store.reports.length;
-            store.reports = store.reports.filter(r => r.id !== id);
+            store.reports = store.reports.filter(r => parseInt(r.id, 10) !== id);
             saveStore();
             ctx.changes = initialLen - store.reports.length;
             return callback.call(ctx, null);
@@ -340,11 +382,5 @@ const dbAdapter = {
         if (cb) cb(null);
     }
 };
-
-function getParamIndex(sql, fieldName) {
-    const setPart = sql.slice(sql.toLowerCase().indexOf('set') + 3, sql.toLowerCase().indexOf('where'));
-    const parts = setPart.split(',').map(p => p.trim().toLowerCase());
-    return parts.findIndex(p => p.startsWith(fieldName.toLowerCase()));
-}
 
 module.exports = dbAdapter;

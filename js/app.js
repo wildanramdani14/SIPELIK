@@ -16,6 +16,37 @@ let geofenceLayers = [];
 
 let editingReportId = null;
 
+// Client-side image compression helper to keep payloads fast & avoid size limits
+window.compressImageFile = function(file, maxWidth = 900, quality = 0.7) {
+    return new Promise((resolve) => {
+        if (!file || !file.type || !file.type.startsWith('image/')) {
+            return resolve(null);
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            };
+            img.onerror = () => resolve(e.target.result);
+            img.src = e.target.result;
+        };
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+    });
+};
+
 window.closeReportModal = function() {
     const modal = document.getElementById('reportModal');
     if (modal) modal.classList.remove('active');
@@ -432,18 +463,15 @@ document.addEventListener('DOMContentLoaded', () => {
             uploadArea.style.background = 'transparent';
         }
         
-        uploadArea.addEventListener('drop', function(e) {
+        uploadArea.addEventListener('drop', async function(e) {
             let dt = e.dataTransfer;
             let files = dt.files;
             if(files.length) {
                 const p = this.querySelector('p');
-                p.textContent = `File terpilih: ${files[0].name}`;
+                p.textContent = `Mengompres & memproses: ${files[0].name}...`;
                 p.style.color = 'var(--primary)';
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    selectedImageBase64 = event.target.result;
-                };
-                reader.readAsDataURL(files[0]);
+                selectedImageBase64 = await window.compressImageFile(files[0]);
+                p.textContent = `Foto terpilih: ${files[0].name} (Siap)`;
             }
         });
         
@@ -452,17 +480,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const input = document.createElement('input');
             input.type = 'file';
             input.accept = 'image/*';
-            input.onchange = e => { 
+            input.onchange = async e => { 
                 const files = e.target.files;
                 if(files.length) {
                     const p = this.querySelector('p');
-                    p.textContent = `File terpilih: ${files[0].name}`;
+                    p.textContent = `Mengompres & memproses: ${files[0].name}...`;
                     p.style.color = 'var(--primary)';
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        selectedImageBase64 = event.target.result;
-                    };
-                    reader.readAsDataURL(files[0]);
+                    selectedImageBase64 = await window.compressImageFile(files[0]);
+                    p.textContent = `Foto terpilih: ${files[0].name} (Siap)`;
                 }
             };
             input.click();
@@ -478,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchReports() {
         try {
-            const res = await fetch(`${API_BASE}/reports`);
+            const res = await fetch(`${API_BASE}/reports?_t=${Date.now()}`);
             if (res.ok) {
                 reports = await res.json();
                 window.currentReports = reports;
@@ -766,30 +791,27 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         };
 
-                        window.handleAdminProofFileChange = function(e) {
+                        window.handleAdminProofFileChange = async function(e) {
                             const file = e.target.files[0];
                             if (!file) return;
                             if (file.size > 10 * 1024 * 1024) {
                                 window.showToast('Ukuran foto maksimal 10MB', 'error');
                                 return;
                             }
-                            const reader = new FileReader();
-                            reader.onload = function(evt) {
-                                currentAdminProofBase64 = evt.target.result;
-                                const wrapper = document.getElementById('adminProofPreviewWrapper');
-                                const uploadZone = document.getElementById('adminProofUploadZone');
-                                const imgEl = document.getElementById('adminProofPreviewImg');
-                                if (imgEl) imgEl.src = currentAdminProofBase64;
-                                if (wrapper) wrapper.style.display = 'block';
-                                if (uploadZone) uploadZone.style.display = 'none';
+                            window.showToast('Memproses dan mengompres foto bukti...', 'info');
+                            currentAdminProofBase64 = await window.compressImageFile(file);
+                            const wrapper = document.getElementById('adminProofPreviewWrapper');
+                            const uploadZone = document.getElementById('adminProofUploadZone');
+                            const imgEl = document.getElementById('adminProofPreviewImg');
+                            if (imgEl) imgEl.src = currentAdminProofBase64;
+                            if (wrapper) wrapper.style.display = 'block';
+                            if (uploadZone) uploadZone.style.display = 'none';
 
-                                const statusSelect = document.getElementById('adminStatusSelect');
-                                if (statusSelect && statusSelect.value !== 'Selesai') {
-                                    statusSelect.value = 'Selesai';
-                                }
-                                window.showToast('Foto bukti berhasil dipilih! Klik "Simpan Pembaruan" untuk menyimpan.', 'info');
-                            };
-                            reader.readAsDataURL(file);
+                            const statusSelect = document.getElementById('adminStatusSelect');
+                            if (statusSelect && statusSelect.value !== 'Selesai') {
+                                statusSelect.value = 'Selesai';
+                            }
+                            window.showToast('Foto bukti berhasil dipilih! Klik "Simpan Pembaruan" untuk menyimpan.', 'info');
                         };
 
                         adminModal.innerHTML = `
@@ -971,15 +993,20 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Event listener untuk tombol Hapus (User)
+        // Event listener untuk tombol Hapus (User & Admin)
         document.querySelectorAll('.delete-btn, .admin-delete-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const id = parseInt(e.currentTarget.getAttribute('data-id'));
                 window.showConfirm('Apakah Anda yakin ingin menghapus laporan ini?', async () => {
                     try {
-                        await fetch(`${API_BASE}/reports/${id}`, { method: 'DELETE' });
-                        window.showToast('Laporan berhasil dihapus', 'success');
-                        fetchReports();
+                        const res = await fetch(`${API_BASE}/reports/${id}`, { method: 'DELETE' });
+                        const data = await res.json().catch(() => ({}));
+                        if (res.ok) {
+                            window.showToast(data.message || 'Laporan berhasil dihapus', 'success');
+                        } else {
+                            window.showToast(data.error || 'Gagal menghapus laporan', 'error');
+                        }
+                        await fetchReports();
                     } catch(err) {
                         window.showToast('Gagal menghapus laporan', 'error');
                     }

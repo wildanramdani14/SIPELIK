@@ -8,6 +8,12 @@ const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json({ limit: '15mb' }));
+app.use((req, res, next) => {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    next();
+});
 app.use(express.static(__dirname));
 
 // Database Driver (Supports SQLite3 locally, with auto-fallback to JSON DB for Netlify / Serverless environments)
@@ -227,7 +233,7 @@ router.delete('/users/:id', (req, res) => {
             return res.status(403).json({ error: 'Akun Super Admin utama tidak dapat dihapus!' });
         }
 
-        db.run("DELETE FROM users WHERE id = ?", req.params.id, function (err) {
+        db.run("DELETE FROM users WHERE id = ?", [req.params.id], function (err) {
             if (err) return res.status(500).json({ error: err.message });
             res.json({ changes: this.changes, message: 'Pengguna berhasil dihapus' });
         });
@@ -371,7 +377,7 @@ router.put('/reports/:id', (req, res) => {
 });
 
 router.delete('/reports/:id', (req, res) => {
-    db.run("DELETE FROM reports WHERE id = ?", req.params.id, function (err) {
+    db.run("DELETE FROM reports WHERE id = ?", [req.params.id], function (err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ changes: this.changes, message: 'Laporan berhasil dihapus' });
     });

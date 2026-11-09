@@ -840,8 +840,8 @@
         async function fetchInitialData() {
             try {
                 const [resUsers, resReports] = await Promise.all([
-                    fetch(`${API_BASE}/users`),
-                    fetch(`${API_BASE}/reports`)
+                    fetch(`${API_BASE}/users?_t=${Date.now()}`),
+                    fetch(`${API_BASE}/reports?_t=${Date.now()}`)
                 ]);
 
                 allUsers = await resUsers.json();

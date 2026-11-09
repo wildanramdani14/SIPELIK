@@ -630,7 +630,7 @@
         async function loadPetugasForAdmin() {
             try {
                 const apiBase = window.API_BASE || '/api';
-                const res = await fetch(`${apiBase}/users?role=petugas`);
+                const res = await fetch(`${apiBase}/users?role=petugas&_t=${Date.now()}`);
                 availablePetugas = await res.json();
                 renderPetugasDropdown();
                 renderPetugasDirectory();

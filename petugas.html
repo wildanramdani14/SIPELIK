@@ -299,7 +299,7 @@
         async function loadOfficerTasks() {
             try {
                 // Ambil semua laporan
-                const res = await fetch(`${API_BASE}/reports`);
+                const res = await fetch(`${API_BASE}/reports?_t=${Date.now()}`);
                 const allReports = await res.json();
 
                 // Filter laporan yang ditugaskan ke petugas yang sedang login
