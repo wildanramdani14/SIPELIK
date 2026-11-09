@@ -5,6 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Super Admin Dashboard - SIPELIK UIN Cirebon</title>
     <link rel="icon" type="image/png" href="assets/logo.png">
+    <script>
+        // Guard: Super Admin Session Check
+        (function() {
+            const userStr = localStorage.getItem('sipelik_user');
+            if (!userStr) {
+                window.location.replace('login.html');
+            } else {
+                try {
+                    const u = JSON.parse(userStr);
+                    if (u.role !== 'superadmin') {
+                        window.location.replace('login.html');
+                    }
+                } catch(e) {
+                    window.location.replace('login.html');
+                }
+            }
+        })();
+    </script>
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- Chart.js -->

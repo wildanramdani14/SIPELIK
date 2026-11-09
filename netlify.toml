@@ -7,7 +7,12 @@
   included_files = ["database.json", "database.db", "js/**"]
 
 [[redirects]]
+  from = "/"
+  to = "/login.html"
+  status = 302
+  force = true
+
+[[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"
   status = 200
-

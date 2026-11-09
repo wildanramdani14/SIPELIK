@@ -14,6 +14,12 @@ app.use((req, res, next) => {
     res.setHeader('Expires', '0');
     next();
 });
+
+// Root landing page redirects to login page
+app.get('/', (req, res) => {
+    res.redirect('/login.html');
+});
+
 app.use(express.static(__dirname));
 
 // Database Driver (Supports SQLite3 locally, with auto-fallback to JSON DB for Netlify / Serverless environments)

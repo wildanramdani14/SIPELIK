@@ -6,6 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Pengguna - SIPELIK</title>
     <link rel="icon" type="image/png" href="assets/logo.png">
+    <script>
+        // Guard: Jika belum login, alihkan langsung ke login.html
+        (function() {
+            const userStr = localStorage.getItem('sipelik_user');
+            if (!userStr) {
+                window.location.replace('login.html');
+            } else {
+                try {
+                    const u = JSON.parse(userStr);
+                    if (u.role === 'superadmin') window.location.replace('superadmin.html');
+                    else if (u.role === 'admin') window.location.replace('admin.html');
+                } catch(e) {}
+            }
+        })();
+    </script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
