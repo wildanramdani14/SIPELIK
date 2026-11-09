@@ -33,7 +33,7 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=2">
     <style>
         :root {
             --super-gold: #C1933B;
@@ -317,7 +317,7 @@
                         <p style="color: var(--text-muted);">Manajemen hierarki akun Admin Layanan dan Petugas Lapangan UIN Siber Cirebon.</p>
                     </div>
                     <div style="display: flex; gap: 0.75rem; align-items: center;">
-                        <button type="button" class="btn btn-outline btn-print" onclick="printSuperPageReport('dashboard')">
+                        <button type="button" class="btn btn-print" onclick="printSuperPageReport('dashboard')">
                             <i class="ph-bold ph-printer"></i> Cetak Laporan
                         </button>
                         <button class="btn btn-primary" onclick="openAddUserModal('admin')">
@@ -420,7 +420,7 @@
                         <p style="color: var(--text-muted);">Admin bertugas sebagai penghubung antara laporan Mahasiswa/User dan Petugas Lapangan.</p>
                     </div>
                     <div style="display: flex; gap: 0.75rem; align-items: center;">
-                        <button type="button" class="btn btn-outline btn-print" onclick="printSuperPageReport('kelola-admin')">
+                        <button type="button" class="btn btn-print" onclick="printSuperPageReport('kelola-admin')">
                             <i class="ph-bold ph-printer"></i> Cetak Laporan
                         </button>
                         <button class="btn btn-primary" onclick="openAddUserModal('admin')">
@@ -468,7 +468,7 @@
                         <p style="color: var(--text-muted);">Kontak WhatsApp personel penanganan operasional kampus. Petugas dikoordinasikan oleh Admin Layanan secara langsung melalui WhatsApp tanpa akun web.</p>
                     </div>
                     <div style="display: flex; gap: 0.75rem; align-items: center;">
-                        <button type="button" class="btn btn-outline btn-print" onclick="printSuperPageReport('kelola-petugas')">
+                        <button type="button" class="btn btn-print" onclick="printSuperPageReport('kelola-petugas')">
                             <i class="ph-bold ph-printer"></i> Cetak Laporan
                         </button>
                         <button class="btn btn-whatsapp" onclick="openAddUserModal('petugas')">
@@ -515,7 +515,7 @@
                         <p style="color: var(--text-muted);">Pantau pengaduan dari pelapor, admin penghubung, petugas yang ditugaskan, dan bukti pengerjaan.</p>
                     </div>
                     <div>
-                        <button type="button" class="btn btn-outline btn-print" onclick="printSuperPageReport('monitoring')">
+                        <button type="button" class="btn btn-print" onclick="printSuperPageReport('monitoring')">
                             <i class="ph-bold ph-printer"></i> Cetak Laporan
                         </button>
                     </div>
