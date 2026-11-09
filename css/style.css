@@ -884,6 +884,28 @@ textarea.form-control {
     margin-bottom: 1.5rem;
 }
 
+.modal-footer-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+}
+
+@media (max-width: 576px) {
+    .modal-footer-actions {
+        flex-direction: column-reverse !important;
+        gap: 0.5rem !important;
+        width: 100% !important;
+    }
+    .modal-footer-actions .btn {
+        width: 100% !important;
+        justify-content: center !important;
+        min-height: 44px !important;
+    }
+}
+
 /* Proof Photo Upload & Preview */
 .proof-upload-box {
     height: 160px;
@@ -1521,52 +1543,80 @@ textarea.form-control {
     .table {
         min-width: 650px;
     }
+
+    .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(11, 92, 58, 0.25) transparent;
+        position: relative;
+        border-radius: var(--radius-md);
+    }
+
+    .table-wrapper::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .table-wrapper::-webkit-scrollbar-thumb {
+        background: rgba(11, 92, 58, 0.25);
+        border-radius: 4px;
+    }
 }
 
 @media (max-width: 768px) {
+    /* Prevent iOS auto-zoom on input focus */
+    input, select, textarea {
+        font-size: 16px !important;
+    }
+
     .dashboard-main {
         margin-left: 0 !important;
-        padding: 1.25rem 1rem 2rem 1rem;
+        padding: 1rem 0.85rem 2rem 0.85rem !important;
         width: 100% !important;
         max-width: 100% !important;
         box-sizing: border-box;
     }
 
     .mobile-topbar {
-        margin: -1.25rem -1rem 1.25rem -1rem;
-        padding: 0.75rem 1rem;
+        margin: -1rem -0.85rem 1rem -0.85rem;
+        padding: 0.75rem 0.85rem;
+    }
+
+    .mobile-topbar-title h2 {
+        font-size: 1.15rem;
     }
 
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 0.85rem;
-        margin-bottom: 1.5rem;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
     }
 
     .stat-card {
-        padding: 1rem;
-        gap: 0.85rem;
+        padding: 0.85rem;
+        gap: 0.75rem;
     }
 
     .stat-icon {
-        width: 2.75rem;
-        height: 2.75rem;
-        font-size: 1.2rem;
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1.15rem;
+        flex-shrink: 0;
     }
 
     .stat-details h3 {
-        font-size: 1.5rem;
+        font-size: 1.35rem;
     }
 
     .stat-details p {
-        font-size: 0.8rem;
+        font-size: 0.78rem;
     }
 
     .filter-bar,
     .filter-header-bar {
         flex-direction: column;
         align-items: stretch !important;
-        gap: 0.75rem;
+        gap: 0.65rem;
     }
 
     .filter-bar input,
@@ -1574,24 +1624,36 @@ textarea.form-control {
     .filter-header-bar input,
     .filter-header-bar select {
         width: 100% !important;
+        min-height: 42px;
     }
 
     /* Navbar on index.html */
     .navbar {
-        padding: 0.75rem 0;
+        padding: 0.65rem 0;
     }
 
     .navbar .container {
+        padding: 0 0.85rem;
         flex-wrap: wrap;
-        gap: 0.5rem;
+        gap: 0.4rem;
     }
 
     .navbar-brand {
-        font-size: 1.35rem;
+        font-size: 1.2rem;
+        gap: 0.5rem;
+    }
+
+    .brand-logo-img {
+        height: 32px !important;
     }
 
     .nav-links {
-        gap: 0.75rem;
+        gap: 0.5rem;
+    }
+
+    .nav-links a {
+        font-size: 0.88rem;
+        padding: 0.35rem 0.55rem;
     }
 
     .user-nav-details {
@@ -1599,18 +1661,27 @@ textarea.form-control {
     }
 
     .hero {
-        padding: 3rem 1.5rem;
-        margin-bottom: 2rem;
+        padding: 2.25rem 1.25rem;
+        margin: 1rem 0 1.5rem 0;
         border-radius: var(--radius-lg);
     }
 
     .hero-content h1 {
-        font-size: 1.85rem;
+        font-size: 1.65rem;
+        line-height: 1.25;
+        margin-bottom: 0.75rem;
     }
 
     .hero-content p {
-        font-size: 0.95rem;
-        margin-bottom: 1.5rem;
+        font-size: 0.92rem;
+        margin-bottom: 1.25rem;
+        line-height: 1.5;
+    }
+
+    .hero-content .btn {
+        width: 100%;
+        justify-content: center;
+        min-height: 46px;
     }
 
     .report-grid {
@@ -1618,12 +1689,28 @@ textarea.form-control {
         gap: 1rem;
     }
 
+    .report-card {
+        padding: 1rem;
+    }
+
+    .report-img {
+        height: 160px;
+    }
+
     /* Modal responsiveness */
+    .overlay {
+        padding: 0.75rem;
+    }
+
     .modal {
-        padding: 1.25rem;
-        width: 95%;
-        max-height: 88vh;
-        margin: 1rem;
+        padding: 1.25rem 1rem !important;
+        width: 100% !important;
+        max-width: 540px !important;
+        max-height: 92vh !important;
+        max-height: 92dvh !important;
+        margin: auto !important;
+        border-radius: var(--radius-lg);
+        -webkit-overflow-scrolling: touch;
     }
 
     .modal-grid-2col {
@@ -1631,60 +1718,212 @@ textarea.form-control {
         gap: 0.75rem !important;
     }
 
-    .modal-header h3 {
-        font-size: 1.25rem !important;
-    }
-
     .modal-header {
         margin-bottom: 1rem;
         padding-bottom: 0.75rem;
     }
 
+    .modal-header h3 {
+        font-size: 1.2rem !important;
+    }
+
+    /* Modal footer actions on mobile */
+    .modal form > div:last-child,
+    .modal > div:last-child {
+        flex-direction: column-reverse !important;
+        gap: 0.5rem !important;
+        width: 100% !important;
+    }
+
+    .modal form > div:last-child .btn,
+    .modal > div:last-child .btn {
+        width: 100% !important;
+        justify-content: center !important;
+        min-height: 44px !important;
+    }
+
+    /* Campus chips scrollable horizontally */
+    .campus-quick-nav {
+        display: flex !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        flex-wrap: nowrap !important;
+        gap: 0.35rem !important;
+        padding-bottom: 0.4rem !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+    }
+
+    .campus-quick-nav::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    .campus-chip {
+        flex-shrink: 0 !important;
+        font-size: 0.75rem !important;
+        padding: 0.3rem 0.65rem !important;
+    }
+
+    /* Tables on mobile */
+    .table th, .table td {
+        padding: 0.7rem 0.65rem;
+        font-size: 0.84rem;
+    }
+
+    .table th {
+        font-size: 0.78rem;
+    }
+
+    .action-btns {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .action-btn {
+        width: 34px !important;
+        height: 34px !important;
+        font-size: 0.95rem !important;
+        flex-shrink: 0;
+    }
+
     .auth-card {
-        padding: 1.75rem 1.25rem;
-        margin: 1rem;
-        max-width: 95%;
+        padding: 1.5rem 1.15rem;
+        margin: 0.5rem;
+        max-width: 100%;
     }
 
     .auth-header h1 {
-        font-size: 1.5rem;
+        font-size: 1.45rem;
+    }
+
+    .auth-logo-img {
+        height: 48px !important;
+    }
+
+    /* Petugas Mobile UI */
+    .petugas-header {
+        padding: 1.25rem 0 !important;
+        margin-bottom: 1.25rem !important;
+    }
+
+    .petugas-profile-card {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 1rem !important;
+    }
+
+    .petugas-profile-card > div:last-child {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .task-filter-bar {
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        flex-wrap: nowrap !important;
+        gap: 0.35rem !important;
+        padding-bottom: 0.5rem !important;
+        margin-bottom: 1rem !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: none !important;
+    }
+
+    .task-filter-bar::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    .task-filter-btn {
+        flex-shrink: 0 !important;
+        padding: 0.45rem 0.85rem !important;
+        font-size: 0.85rem !important;
+    }
+
+    .task-card {
+        padding: 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .task-grid-layout {
+        grid-template-columns: 1fr !important;
+        gap: 0.85rem !important;
     }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 480px) {
     .stats-grid {
         grid-template-columns: 1fr;
+        gap: 0.65rem;
+    }
+
+    .stat-card {
+        padding: 0.75rem 0.85rem;
     }
 
     .dashboard-main {
-        margin-left: 0 !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        padding: 1rem 0.75rem 1.5rem 0.75rem;
-        box-sizing: border-box;
+        padding: 0.85rem 0.65rem 1.5rem 0.65rem !important;
     }
 
     .mobile-topbar {
-        margin: -1rem -0.75rem 1rem -0.75rem;
+        margin: -0.85rem -0.65rem 0.85rem -0.65rem;
         padding: 0.65rem 0.75rem;
     }
 
     .page-title {
-        font-size: 1.4rem;
+        font-size: 1.25rem;
     }
 
-    .campus-quick-nav {
-        gap: 0.35rem;
+    .page-subtitle {
+        font-size: 0.8rem;
     }
 
-    .campus-chip {
-        font-size: 0.75rem;
-        padding: 0.25rem 0.55rem;
+    .card {
+        padding: 1rem 0.85rem;
+        border-radius: var(--radius-md);
     }
 
-    .action-btns {
-        flex-wrap: wrap;
-        gap: 0.3rem;
+    .card-header {
+        margin-bottom: 0.85rem;
+        padding-bottom: 0.65rem;
+    }
+
+    .card-title {
+        font-size: 1.05rem;
+    }
+
+    /* Modal adjustments on smallest phones */
+    .modal {
+        padding: 1rem 0.85rem !important;
+        width: 100% !important;
+    }
+
+    #reportMap {
+        height: 200px !important;
+    }
+
+    .proof-upload-box {
+        height: 130px !important;
+    }
+
+    .table th, .table td {
+        padding: 0.6rem 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .table-list-item {
+        font-size: 0.78rem;
+    }
+
+    .pill-status {
+        font-size: 0.72rem;
+        padding: 0.15rem 0.45rem;
+    }
+
+    .quick-chip {
+        font-size: 0.74rem;
+        padding: 0.3rem 0.55rem;
     }
 }
 
