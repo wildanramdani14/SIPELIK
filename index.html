@@ -8,7 +8,7 @@
     <link rel="icon" type="image/png" href="assets/logo.png">
     <script>
         // Theme guard
-        (function() {
+        (function () {
             const savedTheme = localStorage.getItem('sipelik_theme');
             const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
             if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
@@ -24,7 +24,7 @@
                     const u = JSON.parse(userStr);
                     if (u.role === 'superadmin') window.location.replace('superadmin.html');
                     else if (u.role === 'admin') window.location.replace('admin.html');
-                } catch(e) {}
+                } catch (e) { }
             }
         })();
     </script>
@@ -192,12 +192,15 @@
             </a>
 
             <div class="nav-right-group">
-                <button type="button" class="btn-nav-guide" onclick="document.getElementById('panduanModal').classList.add('active');" title="Panduan Penggunaan">
+                <button type="button" class="btn-nav-guide"
+                    onclick="document.getElementById('panduanModal').classList.add('active');"
+                    title="Panduan Penggunaan">
                     <i class="ph ph-book-open"></i>
                     <span class="guide-text">Panduan</span>
                 </button>
 
-                <button type="button" class="btn-nav-theme" onclick="toggleTheme()" title="Ubah Mode Gelap/Terang" aria-label="Ubah Mode Gelap/Terang">
+                <button type="button" class="btn-nav-theme" onclick="toggleTheme()" title="Ubah Mode Gelap/Terang"
+                    aria-label="Ubah Mode Gelap/Terang">
                     <i class="ph-bold ph-moon" id="navThemeIcon"></i>
                 </button>
 
@@ -211,7 +214,8 @@
                     </div>
                 </div>
 
-                <button type="button" class="btn-nav-logout" onclick="handleUserLogout(event)" title="Keluar dari Akun" aria-label="Keluar">
+                <button type="button" class="btn-nav-logout" onclick="handleUserLogout(event)" title="Keluar dari Akun"
+                    aria-label="Keluar">
                     <i class="ph-bold ph-sign-out"></i>
                 </button>
             </div>
