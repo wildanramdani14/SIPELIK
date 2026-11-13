@@ -252,9 +252,6 @@
                 <a href="#" id="nav-kelola-admin" onclick="switchSuperTab('kelola-admin'); return false;">
                     <i class="ph-bold ph-shield-check"></i> Kelola Admin
                 </a>
-                <a href="#" id="nav-kelola-petugas" onclick="switchSuperTab('kelola-petugas'); return false;">
-                    <i class="ph-bold ph-hard-hat"></i> Kelola Petugas
-                </a>
                 <a href="#" id="nav-monitoring" onclick="switchSuperTab('monitoring'); return false;">
                     <i class="ph-bold ph-broadcast"></i> Monitoring Pengaduan
                 </a>
@@ -317,7 +314,7 @@
                             <span class="super-badge"><i class="ph-fill ph-crown"></i> SUPER ADMINISTRATOR</span>
                         </div>
                         <h1 class="page-title">Pusat Kendali Sistem Pengaduan</h1>
-                        <p style="color: var(--text-muted);">Manajemen hierarki akun Admin Layanan dan Petugas Lapangan UIN Siber Cirebon.</p>
+                        <p style="color: var(--text-muted);">Pusat kendali akun Administrator Layanan dan monitoring pengaduan kampus UIN Siber Cirebon.</p>
                     </div>
                     <div style="display: flex; gap: 0.75rem; align-items: center;">
                         <button type="button" class="btn btn-print" onclick="printSuperPageReport('dashboard')">
@@ -338,15 +335,6 @@
                         <div class="stat-details">
                             <h3 id="statTotalAdmin">0</h3>
                             <p>Admin Layanan Aktif</p>
-                        </div>
-                    </div>
-                    <div class="stat-card" style="border-bottom-color: var(--accent-light);">
-                        <div class="stat-icon" style="background: rgba(193, 147, 59, 0.12); color: var(--accent);">
-                            <i class="ph-fill ph-hard-hat"></i>
-                        </div>
-                        <div class="stat-details">
-                            <h3 id="statTotalPetugas">0</h3>
-                            <p>Petugas Lapangan Aktif</p>
                         </div>
                     </div>
                     <div class="stat-card" style="border-bottom-color: var(--warning);">
@@ -377,15 +365,11 @@
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; font-size: 0.9rem;">
                         <div style="background: var(--surface); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border);">
                             <div style="font-weight: 700; color: #B45309; margin-bottom: 0.35rem;">👑 Super Administrator (Anda)</div>
-                            <p style="color: var(--text-muted); font-size: 0.85rem;">Mengelola penuh data akun Admin dan Petugas Lapangan. Mengawasi tata kelola operasional dan performa penyelesaian laporan se-kampus.</p>
+                            <p style="color: var(--text-muted); font-size: 0.85rem;">Mengelola penuh data akun Admin Layanan, memantau pengaduan secara menyeluruh, dan mengawasi tata kelola operasional se-kampus.</p>
                         </div>
                         <div style="background: var(--surface); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border);">
-                            <div style="font-weight: 700; color: var(--primary); margin-bottom: 0.35rem;">🛡️ Admin Layanan (Penghubung)</div>
-                            <p style="color: var(--text-muted); font-size: 0.85rem;">Menghubungkan <strong>User (Pelapor)</strong> dengan <strong>Petugas Lapangan</strong>. Memverifikasi laporan masuk dan mendisposisikan tugas ke petugas yang sesuai.</p>
-                        </div>
-                        <div style="background: var(--surface); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border);">
-                            <div style="font-weight: 700; color: #7B5024; margin-bottom: 0.35rem;">👷 Petugas Lapangan (Eksekutor)</div>
-                            <p style="color: var(--text-muted); font-size: 0.85rem;">Menerima disposisi tugas dari Admin Layanan, mengeksekusi penanganan fisik di kampus, dan mengunggah foto bukti penyelesaian.</p>
+                            <div style="font-weight: 700; color: var(--primary); margin-bottom: 0.35rem;">🛡️ Admin Layanan</div>
+                            <p style="color: var(--text-muted); font-size: 0.85rem;">Memverifikasi laporan masuk dari mahasiswa/pelapor, mengkoordinasikan tindak lanjut, dan memperbarui status penanganan hingga tuntas.</p>
                         </div>
                     </div>
                 </div>
@@ -403,9 +387,6 @@
                         <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                             <button class="btn btn-outline" style="justify-content: flex-start;" onclick="openAddUserModal('admin')">
                                 <i class="ph-bold ph-user-plus" style="color: var(--primary);"></i> Tambah Admin Layanan Baru
-                            </button>
-                            <button class="btn btn-outline" style="justify-content: flex-start;" onclick="openAddUserModal('petugas')">
-                                <i class="ph-bold ph-hard-hat" style="color: var(--accent-light);"></i> Tambah Petugas Lapangan Baru
                             </button>
                             <button class="btn btn-outline" style="justify-content: flex-start;" onclick="switchSuperTab('monitoring')">
                                 <i class="ph-bold ph-magnifying-glass"></i> Pantau Seluruh Laporan
@@ -463,54 +444,7 @@
                 </div>
             </div>
 
-            <!-- TAB 3: KELOLA PETUGAS -->
-            <div id="tab-kelola-petugas" class="admin-tab">
-                <div class="page-header fade-in-up">
-                    <div>
-                        <h1 class="page-title"><i class="ph-bold ph-whatsapp-logo" style="color: #25D366;"></i> Buku Kontak Petugas Lapangan (WhatsApp)</h1>
-                        <p style="color: var(--text-muted);">Kontak WhatsApp personel penanganan operasional kampus. Petugas dikoordinasikan oleh Admin Layanan secara langsung melalui WhatsApp tanpa akun web.</p>
-                    </div>
-                    <div style="display: flex; gap: 0.75rem; align-items: center;">
-                        <button type="button" class="btn btn-print" onclick="printSuperPageReport('kelola-petugas')">
-                            <i class="ph-bold ph-printer"></i> Cetak Laporan
-                        </button>
-                        <button class="btn btn-whatsapp" onclick="openAddUserModal('petugas')">
-                            <i class="ph-bold ph-plus-circle"></i> Tambah Kontak Petugas
-                        </button>
-                    </div>
-                </div>
-
-                <div class="filter-header-bar fade-in-up">
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <i class="ph-bold ph-whatsapp-logo" style="font-size: 1.25rem; color: #25D366;"></i>
-                        <span style="font-weight: 600;">Daftar Nomor WhatsApp Personel Lapangan</span>
-                    </div>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <input type="text" id="searchPetugasInput" class="form-control" placeholder="Cari nama atau spesialisasi..." style="width: 250px; padding: 0.4rem 0.8rem;" oninput="renderPetugasTable()">
-                    </div>
-                </div>
-
-                <div class="table-wrapper fade-in-up">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nama Petugas</th>
-                                <th>Nomor WhatsApp</th>
-                                <th>Spesialisasi Lapangan</th>
-                                <th>Status Personel</th>
-                                <th>Tugas Ditangani</th>
-                                <th style="text-align: right;">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="superPetugasTableBody">
-                            <!-- Injected by JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- TAB 4: MONITORING PENGADUAN -->
+            <!-- TAB 3: MONITORING PENGADUAN -->
             <div id="tab-monitoring" class="admin-tab">
                 <div class="page-header fade-in-up">
                     <div>
@@ -788,8 +722,6 @@
                 title = 'LAPORAN EKSEKUTIF & STATISTIK SISTEM PENGADUAN SIPELIK';
             } else if (currentTabId === 'tab-kelola-admin') {
                 title = 'LAPORAN DATA MANAJEMEN AKUN ADMINISTRATOR LAYANAN';
-            } else if (currentTabId === 'tab-kelola-petugas') {
-                title = 'LAPORAN BUKU KONTAK PERSONEL PETUGAS LAPANGAN';
             } else if (currentTabId === 'tab-monitoring') {
                 title = 'LAPORAN MONITORING SELURUH PENGADUAN KAMPUS';
             }
@@ -876,7 +808,6 @@
 
                 updateDashboardStats();
                 renderAdminTable();
-                renderPetugasTable();
                 renderMonitoringTable();
                 initOrUpdateChart();
             } catch (err) {
@@ -887,12 +818,10 @@
 
         function updateDashboardStats() {
             const admins = allUsers.filter(u => u.role === 'admin' && u.status === 'Aktif');
-            const petugas = allUsers.filter(u => u.role === 'petugas' && u.status === 'Aktif');
             const total = allReports.length;
             const selesai = allReports.filter(r => r.status === 'Selesai').length;
 
             document.getElementById('statTotalAdmin').textContent = admins.length;
-            document.getElementById('statTotalPetugas').textContent = petugas.length;
             document.getElementById('statTotalLaporan').textContent = total;
             document.getElementById('statTotalSelesai').textContent = selesai;
         }
@@ -1009,78 +938,7 @@
 
         // RENDER PETUGAS TABLE
         function renderPetugasTable() {
-            const tbody = document.getElementById('superPetugasTableBody');
-            const search = (document.getElementById('searchPetugasInput')?.value || '').toLowerCase();
-            const petugasList = allUsers.filter(u => u.role === 'petugas');
-
-            tbody.innerHTML = '';
-            const filtered = petugasList.filter(u => 
-                u.name.toLowerCase().includes(search) || 
-                (u.phone || '').includes(search) || 
-                (u.specialization || '').toLowerCase().includes(search)
-            );
-
-            if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 2rem;">Tidak ada kontak Petugas yang cocok.</td></tr>`;
-                return;
-            }
-
-            filtered.forEach(p => {
-                const isAktif = p.status === 'Aktif';
-                const taskCount = allReports.filter(r => r.assignedPetugasId === p.id).length;
-                const cleanPhone = (p.phone || '').replace(/[^0-9]/g, '');
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td class="nowrap"><strong>#PTG-${p.id}</strong></td>
-                        <td>
-                            <div class="petugas-table-name" style="font-weight: 600; font-size: 0.95rem;">${p.name}</div>
-                        </td>
-                        <td class="nowrap">
-                            <div class="table-cell-list">
-                                <a href="https://wa.me/${cleanPhone}" target="_blank" class="table-list-item wa-link" title="Uji Chat WhatsApp">
-                                    <i class="ph-bold ph-whatsapp-logo"></i>
-                                    <span>${p.phone || '-'}</span>
-                                </a>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="table-cell-list">
-                                <div class="table-list-item">
-                                    <i class="ph-bold ph-wrench" style="color: var(--primary);"></i>
-                                    <strong>${p.specialization || 'Umum'}</strong>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="nowrap">
-                            <span class="pill-status ${isAktif ? 'pill-active' : 'pill-inactive'}">
-                                <i class="ph-fill ${isAktif ? 'ph-check-circle' : 'ph-x-circle'}"></i> ${p.status}
-                            </span>
-                        </td>
-                        <td class="nowrap">
-                            <span class="badge ${taskCount > 0 ? 'badge-process' : 'badge-pending'}" style="font-size: 0.8rem;">
-                                ${taskCount} Tugas
-                            </span>
-                        </td>
-                        <td class="nowrap">
-                            <div class="action-btns" style="justify-content: flex-end;">
-                                <a href="https://wa.me/${cleanPhone}" target="_blank" class="action-btn" title="Chat WhatsApp" style="color: #25D366; background: rgba(37, 211, 102, 0.1);">
-                                    <i class="ph-bold ph-whatsapp-logo"></i>
-                                </a>
-                                <button class="action-btn btn-status-toggle ${isAktif ? '' : 'inactive'}" title="${isAktif ? 'Nonaktifkan Status' : 'Aktifkan Status'}" onclick="toggleUserStatus(${p.id}, '${p.status}')">
-                                    <i class="ph-bold ${isAktif ? 'ph-toggle-right' : 'ph-toggle-left'}"></i>
-                                </button>
-                                <button class="action-btn btn-edit-user" title="Edit Kontak" onclick="openEditUserModal(${p.id})">
-                                    <i class="ph-bold ph-pencil-simple"></i>
-                                </button>
-                                <button class="action-btn btn-delete-user" title="Hapus Kontak" onclick="confirmDeleteUser(${p.id}, '${p.name}')">
-                                    <i class="ph-bold ph-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
+            // Bagian petugas lapangan telah dihapus dari superadmin
         }
 
         // RENDER MONITORING TABLE
