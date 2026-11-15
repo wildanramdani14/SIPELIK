@@ -54,6 +54,37 @@
             font-size: 1rem;
         }
 
+        .btn-status-toggle {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+        .btn-status-toggle:hover {
+            background: var(--success);
+            color: white;
+        }
+        .btn-status-toggle.inactive {
+            background: rgba(107, 114, 128, 0.1);
+            color: var(--text-muted);
+        }
+
+        .btn-edit-user {
+            background: rgba(193, 147, 59, 0.12);
+            color: var(--accent);
+        }
+        .btn-edit-user:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-delete-user {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+        .btn-delete-user:hover {
+            background: var(--danger);
+            color: white;
+        }
+
         .btn-view {
             background: rgba(11, 92, 58, 0.1);
             color: var(--primary);
@@ -369,9 +400,12 @@
                         <h1 class="page-title"><i class="ph-bold ph-whatsapp-logo" style="color: #25D366;"></i> Direktori Kontak Petugas Lapangan (WhatsApp)</h1>
                         <p style="color: var(--text-muted);">Hubungi dan koordinasikan penanganan pengaduan kampus secara langsung melalui WhatsApp.</p>
                     </div>
-                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
                         <button type="button" class="btn btn-print" onclick="printPageReport('petugas')">
                             <i class="ph-bold ph-printer"></i> Cetak Laporan
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="openAddPetugasModal()">
+                            <i class="ph-bold ph-plus-circle"></i> Tambah Petugas / Teknisi
                         </button>
                         <span class="badge badge-wa-coordination" style="padding: 0.45rem 0.85rem; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.4rem;">
                             <i class="ph-fill ph-chat-circle-dots"></i> Koordinasi Instan via WhatsApp
@@ -394,11 +428,11 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Nama Petugas</th>
+                                <th>Nama Petugas / Teknisi</th>
                                 <th>Nomor WhatsApp</th>
                                 <th>Spesialisasi Lapangan</th>
                                 <th>Status Personel</th>
-                                <th style="text-align: right;">Aksi WhatsApp</th>
+                                <th style="text-align: right;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody id="adminPetugasDirectoryBody">
@@ -554,6 +588,79 @@
                     <button type="button" id="adminStatusSave" class="btn btn-primary"><i class="ph-bold ph-floppy-disk"></i> Simpan Pembaruan</button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Tambah / Edit Petugas/Teknisi Lapangan -->
+    <div class="overlay" id="petugasModal">
+        <div class="modal" style="max-width: 500px;">
+            <div class="modal-header">
+                <div>
+                    <h3 id="petugasModalTitle" style="font-size: 1.3rem; color: var(--primary-hover); display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="ph-bold ph-user-plus" style="color: var(--primary);"></i> Tambah Petugas / Teknisi
+                    </h3>
+                    <p id="petugasModalSubtitle" style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem;">
+                        Simpan kontak WhatsApp teknisi agar dapat dikoordinasikan saat ada pengaduan kampus.
+                    </p>
+                </div>
+                <button class="close-btn" type="button" onclick="closePetugasModal()"><i class="ph ph-x"></i></button>
+            </div>
+
+            <form id="petugasForm" onsubmit="handleSavePetugas(event)">
+                <input type="hidden" id="editPetugasId" value="">
+
+                <div class="form-group" style="margin-bottom: 1.15rem;">
+                    <label class="form-label" style="font-weight: 600; font-size: 0.88rem; margin-bottom: 0.35rem; display: block;">
+                        Nama Lengkap Petugas / Teknisi <span style="color: var(--danger);">*</span>
+                    </label>
+                    <input type="text" id="petugasNameInput" class="form-control" placeholder="Contoh: Pak Joko Santoso / Kang Asep" required style="font-size: 0.95rem;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.15rem;">
+                    <label class="form-label" style="font-weight: 600; font-size: 0.88rem; margin-bottom: 0.35rem; display: block;">
+                        Nomor WhatsApp Aktif <span style="color: var(--danger);">*</span>
+                    </label>
+                    <div style="position: relative;">
+                        <input type="tel" id="petugasPhoneInput" class="form-control" placeholder="Contoh: 081234567890" required style="font-size: 0.95rem; padding-left: 2.6rem;">
+                        <i class="ph-bold ph-whatsapp-logo" style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: #25D366; font-size: 1.25rem;"></i>
+                    </div>
+                    <small style="color: var(--text-muted); font-size: 0.78rem; display: block; margin-top: 0.3rem;">
+                        Format awalan 08 atau 62 (otomatis tersambung ke WhatsApp saat penugasan).
+                    </small>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.15rem;">
+                    <label class="form-label" style="font-weight: 600; font-size: 0.88rem; margin-bottom: 0.35rem; display: block;">
+                        Bidang Spesialisasi / Tugas Teknisi
+                    </label>
+                    <input type="text" id="petugasSpecInput" class="form-control" list="specializationSuggestions" placeholder="Pilih atau ketik spesialisasi..." style="font-size: 0.95rem;">
+                    <datalist id="specializationSuggestions">
+                        <option value="Kebersihan & Sanitasi Gedung"></option>
+                        <option value="Fasilitas & Kelistrikan"></option>
+                        <option value="Sarpras & Lingkungan Luar"></option>
+                        <option value="Perbaikan AC & Tata Udara"></option>
+                        <option value="Jaringan Internet & IT Kampus"></option>
+                        <option value="Keamanan & Ketertiban Kampus"></option>
+                    </datalist>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.35rem;">
+                    <label class="form-label" style="font-weight: 600; font-size: 0.88rem; margin-bottom: 0.35rem; display: block;">
+                        Status Personel
+                    </label>
+                    <select id="petugasStatusInput" class="form-control" style="font-size: 0.92rem; font-weight: 500;">
+                        <option value="Aktif">Aktif (Siap Menerima Disposisi Tugas)</option>
+                        <option value="Nonaktif">Nonaktif (Sedang Libur / Tidak Bertugas)</option>
+                    </select>
+                </div>
+
+                <div class="modal-footer-actions">
+                    <button type="button" class="btn btn-outline" onclick="closePetugasModal()">Batal</button>
+                    <button type="submit" id="btnSubmitPetugas" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.45rem;">
+                        <i class="ph-bold ph-floppy-disk"></i> Simpan Data Petugas
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -727,14 +834,148 @@
                             </span>
                         </td>
                         <td class="nowrap" style="text-align: right;">
-                            <button type="button" class="btn btn-whatsapp" style="padding: 0.35rem 0.85rem; font-size: 0.82rem;" onclick="openDirectWhatsAppChat('${p.phone}', '${p.name}')">
-                                <i class="ph-fill ph-whatsapp-logo"></i> Chat WhatsApp
-                            </button>
+                            <div class="action-btns" style="justify-content: flex-end; display: inline-flex; gap: 0.35rem; align-items: center;">
+                                <button type="button" class="btn btn-whatsapp" style="padding: 0.35rem 0.75rem; font-size: 0.82rem;" onclick="openDirectWhatsAppChat('${p.phone}', '${p.name}')" title="Chat WhatsApp">
+                                    <i class="ph-fill ph-whatsapp-logo"></i> Chat
+                                </button>
+                                <button type="button" class="action-btn btn-status-toggle ${isAktif ? '' : 'inactive'}" style="width: 32px; height: 32px; border-radius: 6px;" title="${isAktif ? 'Nonaktifkan Petugas' : 'Aktifkan Petugas'}" onclick="togglePetugasStatus(${p.id}, '${p.status}')">
+                                    <i class="ph-bold ${isAktif ? 'ph-toggle-right' : 'ph-toggle-left'}"></i>
+                                </button>
+                                <button type="button" class="action-btn btn-edit-user" style="width: 32px; height: 32px; border-radius: 6px;" title="Edit Data Petugas" onclick="openEditPetugasModal(${p.id})">
+                                    <i class="ph-bold ph-pencil-simple"></i>
+                                </button>
+                                <button type="button" class="action-btn btn-delete-user" style="width: 32px; height: 32px; border-radius: 6px;" title="Hapus Petugas" onclick="confirmDeletePetugas(${p.id}, '${p.name}')">
+                                    <i class="ph-bold ph-trash"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
             });
         }
+
+        window.openAddPetugasModal = function() {
+            document.getElementById('petugasForm').reset();
+            document.getElementById('editPetugasId').value = '';
+            document.getElementById('petugasStatusInput').value = 'Aktif';
+            document.getElementById('petugasModalTitle').innerHTML = '<i class="ph-bold ph-user-plus" style="color: var(--primary);"></i> Tambah Petugas / Teknisi';
+            document.getElementById('petugasModalSubtitle').textContent = 'Simpan kontak WhatsApp teknisi agar dapat dikoordinasikan saat ada pengaduan kampus.';
+            document.getElementById('btnSubmitPetugas').innerHTML = '<i class="ph-bold ph-floppy-disk"></i> Simpan Data Petugas';
+            document.getElementById('petugasModal').classList.add('active');
+        };
+
+        window.openEditPetugasModal = function(id) {
+            const p = availablePetugas.find(x => x.id === id);
+            if (!p) return;
+            document.getElementById('editPetugasId').value = p.id;
+            document.getElementById('petugasNameInput').value = p.name || '';
+            document.getElementById('petugasPhoneInput').value = p.phone || '';
+            document.getElementById('petugasSpecInput').value = p.specialization || '';
+            document.getElementById('petugasStatusInput').value = p.status || 'Aktif';
+            document.getElementById('petugasModalTitle').innerHTML = '<i class="ph-bold ph-pencil-simple" style="color: var(--accent);"></i> Edit Data Petugas / Teknisi';
+            document.getElementById('petugasModalSubtitle').textContent = `Perbarui data atau nomor WhatsApp untuk ${p.name}.`;
+            document.getElementById('btnSubmitPetugas').innerHTML = '<i class="ph-bold ph-floppy-disk"></i> Perbarui Data';
+            document.getElementById('petugasModal').classList.add('active');
+        };
+
+        window.closePetugasModal = function() {
+            document.getElementById('petugasModal').classList.remove('active');
+        };
+
+        window.handleSavePetugas = async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('editPetugasId').value;
+            const name = document.getElementById('petugasNameInput').value.trim();
+            const phone = document.getElementById('petugasPhoneInput').value.trim();
+            const specialization = document.getElementById('petugasSpecInput').value.trim();
+            const status = document.getElementById('petugasStatusInput').value;
+
+            if (!name || !phone) {
+                window.showToast('Nama dan nomor WhatsApp wajib diisi!', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btnSubmitPetugas');
+            btn.disabled = true;
+            btn.innerHTML = 'Menyimpan...';
+
+            const apiBase = window.API_BASE || '/api';
+            try {
+                let res;
+                if (id) {
+                    res = await fetch(`${apiBase}/users/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, phone, specialization, status })
+                    });
+                } else {
+                    res = await fetch(`${apiBase}/users`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, phone, specialization, role: 'petugas' })
+                    });
+                }
+
+                const data = await res.json();
+                if (!res.ok) {
+                    window.showToast(data.error || 'Gagal menyimpan data petugas', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="ph-bold ph-floppy-disk"></i> Simpan Data Petugas';
+                    return;
+                }
+
+                window.showToast(id ? `Data petugas ${name} berhasil diperbarui!` : `Petugas baru ${name} berhasil ditambahkan!`, 'success');
+                closePetugasModal();
+                await loadPetugasForAdmin();
+            } catch (err) {
+                console.error(err);
+                window.showToast('Gagal terhubung ke server', 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        };
+
+        window.togglePetugasStatus = async function(id, currentStatus) {
+            const newStatus = currentStatus === 'Aktif' ? 'Nonaktif' : 'Aktif';
+            const apiBase = window.API_BASE || '/api';
+            try {
+                const res = await fetch(`${apiBase}/users/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                if (res.ok) {
+                    window.showToast(`Status petugas diubah menjadi "${newStatus}"`, 'info');
+                    await loadPetugasForAdmin();
+                } else {
+                    const data = await res.json();
+                    window.showToast(data.error || 'Gagal mengubah status', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                window.showToast('Gagal menghubungi server', 'error');
+            }
+        };
+
+        window.confirmDeletePetugas = async function(id, name) {
+            if (!confirm(`Yakin ingin menghapus data kontak petugas "${name}" dari sistem?`)) {
+                return;
+            }
+            const apiBase = window.API_BASE || '/api';
+            try {
+                const res = await fetch(`${apiBase}/users/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (res.ok) {
+                    window.showToast(`Petugas "${name}" berhasil dihapus dari direktori`, 'success');
+                    await loadPetugasForAdmin();
+                } else {
+                    window.showToast(data.error || 'Gagal menghapus petugas', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                window.showToast('Gagal menghubungi server', 'error');
+            }
+        };
 
         window.openDirectWhatsAppChat = function(phone, name) {
             const greeting = `Halo Bapak/Kang *${name}*, ini Admin Layanan Pengaduan SIPELIK UIN Siber Cirebon. Ingin koordinasi terkait penanganan sarana kampus.`;

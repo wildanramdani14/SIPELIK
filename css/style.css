@@ -321,6 +321,40 @@
     color: #E2ECE6 !important;
 }
 
+[data-theme="dark"] .btn-status-toggle {
+    background: rgba(28, 107, 70, 0.22) !important;
+    color: #68B892 !important;
+    border: 1px solid rgba(104, 184, 146, 0.25) !important;
+}
+
+[data-theme="dark"] .btn-status-toggle.inactive {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #8E9F96 !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .btn-edit-user {
+    background: rgba(193, 147, 59, 0.18) !important;
+    color: #D4A855 !important;
+    border: 1px solid rgba(212, 168, 85, 0.25) !important;
+}
+
+[data-theme="dark"] .btn-edit-user:hover {
+    background: var(--accent) !important;
+    color: #FFFFFF !important;
+}
+
+[data-theme="dark"] .btn-delete-user {
+    background: rgba(217, 83, 79, 0.18) !important;
+    color: #E57373 !important;
+    border: 1px solid rgba(229, 115, 115, 0.25) !important;
+}
+
+[data-theme="dark"] .btn-delete-user:hover {
+    background: #D9534F !important;
+    color: #FFFFFF !important;
+}
+
 [data-theme="dark"] .workflow-bridge-card {
     background: linear-gradient(135deg, rgba(28, 107, 70, 0.14) 0%, rgba(193, 147, 59, 0.1) 100%) !important;
     border: 1px solid rgba(104, 184, 146, 0.22) !important;
